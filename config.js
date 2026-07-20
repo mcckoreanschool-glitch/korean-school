@@ -9,8 +9,8 @@
 //  ⚠️ 값을 바꾸기 전까지는 사이트가 기존 데모(정적) 모드로 동작합니다.
 // ============================================================
 window.SUPABASE_CONFIG = {
-  url:     "https://YOUR-PROJECT.supabase.co",
-  anonKey: "YOUR-ANON-PUBLIC-KEY"
+  url:     "https://crufkpftjtjfiaeoztrt.supabase.co",
+  anonKey: "sb_publishable_eeVcS3dqrGYSb4RVzoPUwg_GRgVL1Uy"
 };
 
 // 설정이 실제로 채워졌는지 확인하는 헬퍼
