@@ -111,7 +111,7 @@
         <p class="section-desc" data-ko="아이의 나이와 한국어 수준에 맞춰 반을 편성합니다. 매주 토요일 오전에 정규 수업이 진행됩니다." data-en="Classes are placed by age and Korean proficiency. Regular classes run every Saturday morning.">아이의 나이와 한국어 수준에 맞춰 반을 편성합니다. 매주 토요일 오전에 정규 수업이 진행됩니다.</p>
       </div>
 
-      <div class="program-grid">
+      <div class="program-grid" id="programGrid">
         <div class="program card">
           <span class="program-tag" data-ko="유아·유치" data-en="Preschool">유아·유치</span>
           <h3 data-ko="새싹반" data-en="Sprout Class">새싹반</h3>
@@ -213,7 +213,7 @@
         <h2 data-ko="새로운 소식" data-en="Latest updates">새로운 소식</h2>
       </div>
 
-      <div class="news-list">
+      <div class="news-list" id="newsList">
         <article class="news-item card">
           <div class="news-date"><span>2026</span><b>07.15</b></div>
           <div class="news-body">
@@ -251,7 +251,7 @@
         <p class="section-desc" data-ko="아래 사진은 예시입니다. images 폴더에 사진을 넣고 교체하세요." data-en="Photos below are placeholders — replace them with your own in the images folder.">아래 사진은 예시입니다. images 폴더에 사진을 넣고 교체하세요.</p>
       </div>
 
-      <div class="gallery-grid">
+      <div class="gallery-grid" id="galleryGrid">
         <figure class="g-item g-1"><span data-ko="한글 수업" data-en="Hangeul class">한글 수업</span></figure>
         <figure class="g-item g-2"><span data-ko="전통놀이" data-en="Traditional games">전통놀이</span></figure>
         <figure class="g-item g-3"><span data-ko="한식 만들기" data-en="Korean cooking">한식 만들기</span></figure>
@@ -329,6 +329,8 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

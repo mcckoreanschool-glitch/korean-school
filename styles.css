@@ -230,6 +230,12 @@ img { max-width: 100%; display: block; }
 .g-1 { grid-column: span 2; }
 .g-4 { grid-row: span 1; }
 
+/* 실제 업로드 사진 타일 */
+.g-item.g-photo { background-size: cover; background-position: center; color: #fff; place-items: end start; padding: 16px; }
+.g-item.g-photo::after { background: linear-gradient(to top, rgba(20,16,6,.6), rgba(20,16,6,0) 55%); }
+.g-item.g-photo:hover::after { background: linear-gradient(to top, rgba(20,16,6,.45), rgba(20,16,6,0) 60%); }
+.g-item.g-photo span { font-size: 14.5px; text-shadow: 0 1px 4px rgba(0,0,0,.55); }
+
 /* ===== Location ===== */
 .location-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; }
 .location-info { display: grid; gap: 22px; align-content: start; }

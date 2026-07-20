@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>관리자 · 늘 푸른 한글학교</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin-body">
+
+  <!-- ===== 설정 안내 배너 (Supabase 미설정 시) ===== -->
+  <div id="configWarn" class="config-warn" hidden>
+    ⚠️ Supabase가 아직 연결되지 않았어요. <code>config.js</code>에 Project URL과 anon key를 넣어주세요.
+  </div>
+
+  <!-- ===== 로그인 화면 ===== -->
+  <section id="loginView" class="login-view" hidden>
+    <form class="login-card" id="loginForm">
+      <div class="login-brand">
+        <span class="brand-mark">늘푸른</span>
+        <div>
+          <strong>관리자 로그인</strong>
+          <small>늘 푸른 한글학교</small>
+        </div>
+      </div>
+      <div class="field">
+        <label for="loginEmail">이메일</label>
+        <input type="email" id="loginEmail" required autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="loginPassword">비밀번호</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="loginBtn">로그인</button>
+      <p class="login-msg" id="loginMsg"></p>
+    </form>
+  </section>
+
+  <!-- ===== 대시보드 ===== -->
+  <div id="dashView" class="dash" hidden>
+    <!-- 사이드바 -->
+    <aside class="dash-side">
+      <div class="dash-brand">
+        <span class="brand-mark">늘푸른</span>
+        <div><strong>관리자</strong><small>Admin</small></div>
+      </div>
+      <nav class="dash-nav" id="dashNav">
+        <button class="dash-tab active" data-tab="applications">📝 입학 신청<span class="tab-badge" id="badgeApps">0</span></button>
+        <button class="dash-tab" data-tab="notices">📢 공지사항</button>
+        <button class="dash-tab" data-tab="gallery">🖼️ 갤러리</button>
+        <button class="dash-tab" data-tab="programs">📚 수업/프로그램</button>
+      </nav>
+      <div class="dash-foot">
+        <a href="index.html" target="_blank" class="dash-link">🌐 사이트 보기</a>
+        <button class="dash-link" id="logoutBtn">🚪 로그아웃</button>
+        <small id="whoami" class="whoami"></small>
+      </div>
+    </aside>
+
+    <!-- 메인 -->
+    <main class="dash-main">
+
+      <!-- 탭: 입학 신청 -->
+      <section class="panel active" data-panel="applications">
+        <div class="panel-head">
+          <h1>입학 신청 접수</h1>
+          <div class="panel-tools">
+            <select id="appFilter">
+              <option value="">전체 상태</option>
+              <option value="new">신규</option>
+              <option value="contacted">연락완료</option>
+              <option value="enrolled">등록완료</option>
+              <option value="archived">보관</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" id="exportApps">CSV 내보내기</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="appsTable">
+            <thead>
+              <tr>
+                <th>신청일</th><th>자녀</th><th>나이/학년</th><th>수준</th>
+                <th>보호자</th><th>연락처</th><th>이메일</th><th>문의</th><th>상태</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="appsBody"><tr><td colspan="10" class="empty">불러오는 중…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 탭: 공지사항 -->
+      <section class="panel" data-panel="notices">
+        <div class="panel-head">
+          <h1>공지사항</h1>
+          <button class="btn btn-primary btn-sm" id="newNotice">+ 새 공지</button>
+        </div>
+        <div id="noticesList" class="card-list"><p class="empty">불러오는 중…</p></div>
+      </section>
+
+      <!-- 탭: 갤러리 -->
+      <section class="panel" data-panel="gallery">
+        <div class="panel-head">
+          <h1>갤러리</h1>
+          <button class="btn btn-primary btn-sm" id="newPhoto">+ 사진 추가</button>
+        </div>
+        <div id="galleryList" class="admin-gallery"><p class="empty">불러오는 중…</p></div>
+      </section>
+
+      <!-- 탭: 수업/프로그램 -->
+      <section class="panel" data-panel="programs">
+        <div class="panel-head">
+          <h1>수업 / 프로그램</h1>
+          <button class="btn btn-primary btn-sm" id="newProgram">+ 새 프로그램</button>
+        </div>
+        <div id="programsList" class="card-list"><p class="empty">불러오는 중…</p></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===== 모달 (공지/프로그램/사진 편집) ===== -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" id="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle">편집</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost btn-sm" id="modalCancel">취소</button>
+        <button class="btn btn-primary btn-sm" id="modalSave">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

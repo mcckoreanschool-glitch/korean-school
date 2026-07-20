@@ -1,6 +1,9 @@
-// ===== 늘 푸른 한글학교 — 인터랙션 =====
+// ===== 늘 푸른 한글학교 — 공개 사이트 인터랙션 =====
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   /* ---- 1. 언어 전환 (KO / EN) ---- */
   const langToggle = document.getElementById('langToggle');
@@ -10,26 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyLang(lang) {
     currentLang = lang;
     document.documentElement.lang = lang;
-
-    // 텍스트 전환
     document.querySelectorAll('[data-ko]').forEach(el => {
       const val = el.getAttribute('data-' + lang);
       if (val !== null) el.innerHTML = val;
     });
-
-    // placeholder 전환
     document.querySelectorAll('[data-ph-ko]').forEach(el => {
       const val = el.getAttribute('data-ph-' + lang);
       if (val !== null) el.placeholder = val;
     });
-
-    // 토글 UI
     langOpts.forEach(o => o.classList.toggle('active', o.dataset.lang === lang));
   }
-
-  langToggle.addEventListener('click', () => {
-    applyLang(currentLang === 'ko' ? 'en' : 'ko');
-  });
+  langToggle.addEventListener('click', () => applyLang(currentLang === 'ko' ? 'en' : 'ko'));
 
   /* ---- 2. 모바일 메뉴 ---- */
   const menuBtn = document.getElementById('menuBtn');
@@ -52,31 +46,91 @@ document.addEventListener('DOMContentLoaded', () => {
   onScroll();
 
   /* ---- 4. 등장 애니메이션 ---- */
-  const revealTargets = document.querySelectorAll(
-    '.section-head, .about-grid, .program-grid, .schedule, .admission-form, .steps, .news-item, .g-item, .location-grid'
-  );
-  revealTargets.forEach(el => el.setAttribute('data-reveal', ''));
+  const io = ('IntersectionObserver' in window)
+    ? new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { threshold: 0.12 })
+    : null;
 
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-      });
-    }, { threshold: 0.12 });
-    revealTargets.forEach(el => io.observe(el));
-  } else {
-    revealTargets.forEach(el => el.classList.add('in'));
+  function observeReveals(els) {
+    els.forEach(el => {
+      el.setAttribute('data-reveal', '');
+      if (io) io.observe(el); else el.classList.add('in');
+    });
+  }
+  observeReveals(document.querySelectorAll(
+    '.section-head, .about-grid, .program-grid, .schedule, .admission-form, .steps, .news-item, .g-item, .location-grid'
+  ));
+
+  /* ============================================================
+     5. Supabase 연동 (설정된 경우에만 동적 로딩 / 실제 저장)
+     ============================================================ */
+  const sb = (window.getSupabase && window.getSupabase()) || null;
+
+  if (sb) {
+    loadPrograms();
+    loadNotices();
+    loadGallery();
+  }
+  // sb 가 없으면 index.html 의 기존 데모(정적) 내용이 그대로 보입니다.
+
+  async function loadPrograms() {
+    const { data, error } = await sb.from('programs').select('*')
+      .eq('published', true).order('sort_order', { ascending: true });
+    if (error || !data || !data.length) return;
+    const grid = document.getElementById('programGrid');
+    grid.innerHTML = data.map(p => `
+      <div class="program card">
+        <span class="program-tag" data-ko="${esc(p.tag_ko)}" data-en="${esc(p.tag_en || p.tag_ko)}">${esc(p.tag_ko)}</span>
+        <h3 data-ko="${esc(p.name_ko)}" data-en="${esc(p.name_en || p.name_ko)}">${esc(p.name_ko)}</h3>
+        <p data-ko="${esc(p.desc_ko)}" data-en="${esc(p.desc_en || p.desc_ko)}">${esc(p.desc_ko)}</p>
+      </div>`).join('');
+    applyLang(currentLang);
+    observeReveals(grid.querySelectorAll('.program'));
   }
 
-  /* ---- 5. 입학 신청 폼 ---- */
-  // 실제 접수를 받으려면 아래 중 하나로 연결하세요:
-  //  (A) Formspree: form에 action="https://formspree.io/f/XXXX" method="POST" 추가
-  //  (B) Google Forms: 폼을 만든 뒤 응답을 받는 방식으로 교체
-  //  현재는 데모용으로 화면에 확인 메시지만 표시합니다.
+  async function loadNotices() {
+    const { data, error } = await sb.from('notices').select('*')
+      .eq('published', true).order('notice_date', { ascending: false });
+    if (error || !data || !data.length) return;
+    const list = document.getElementById('newsList');
+    list.innerHTML = data.map(n => {
+      const yr = (n.notice_date || '').slice(0, 4);
+      const md = (n.notice_date || '').slice(5).replace('-', '.');
+      return `
+      <article class="news-item card">
+        <div class="news-date"><span>${esc(yr)}</span><b>${esc(md)}</b></div>
+        <div class="news-body">
+          ${n.category_ko ? `<span class="news-badge" data-ko="${esc(n.category_ko)}" data-en="${esc(n.category_en || n.category_ko)}">${esc(n.category_ko)}</span>` : ''}
+          <h3 data-ko="${esc(n.title_ko)}" data-en="${esc(n.title_en || n.title_ko)}">${esc(n.title_ko)}</h3>
+          <p data-ko="${esc(n.body_ko)}" data-en="${esc(n.body_en || n.body_ko)}">${esc(n.body_ko)}</p>
+        </div>
+      </article>`;
+    }).join('');
+    applyLang(currentLang);
+    observeReveals(list.querySelectorAll('.news-item'));
+  }
+
+  async function loadGallery() {
+    const { data, error } = await sb.from('gallery').select('*')
+      .eq('published', true).order('sort_order', { ascending: true });
+    if (error || !data || !data.length) return;
+    const grid = document.getElementById('galleryGrid');
+    grid.innerHTML = data.map(g => {
+      const url = sb.storage.from('gallery').getPublicUrl(g.image_path).data.publicUrl;
+      return `<figure class="g-item g-photo" style="background-image:url('${esc(url)}')">
+        ${g.caption_ko ? `<span data-ko="${esc(g.caption_ko)}" data-en="${esc(g.caption_en || g.caption_ko)}">${esc(g.caption_ko)}</span>` : ''}
+      </figure>`;
+    }).join('');
+    applyLang(currentLang);
+    observeReveals(grid.querySelectorAll('.g-item'));
+  }
+
+  /* ---- 6. 입학 신청 폼 ---- */
   const form = document.getElementById('admissionForm');
   const note = document.getElementById('formNote');
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const required = form.querySelectorAll('[required]');
     let ok = true;
@@ -84,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!f.value.trim()) { f.style.borderColor = '#e74c3c'; ok = false; }
       else { f.style.borderColor = ''; }
     });
-
     if (!ok) {
       note.className = 'form-note error';
       note.textContent = currentLang === 'ko'
@@ -93,11 +146,41 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    note.className = 'form-note success';
-    note.textContent = currentLang === 'ko'
-      ? '✓ 신청이 접수되었습니다! 곧 연락드리겠습니다. (데모 — 실제 전송은 접수 서비스 연결 필요)'
-      : '✓ Application received! We will be in touch soon. (Demo — connect a form service to send)';
-    form.reset();
+    const payload = {
+      child_name:   form.childName.value.trim(),
+      age_grade:    form.age.value.trim(),
+      korean_level: form.level.value,
+      parent_name:  form.parentName.value.trim(),
+      phone:        form.phone.value.trim(),
+      email:        form.email.value.trim(),
+      message:      form.message.value.trim(),
+    };
+
+    if (sb) {
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      const { error } = await sb.from('applications').insert(payload);
+      btn.disabled = false;
+      if (error) {
+        note.className = 'form-note error';
+        note.textContent = currentLang === 'ko'
+          ? '전송 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.'
+          : 'Something went wrong. Please try again shortly.';
+        return;
+      }
+      note.className = 'form-note success';
+      note.textContent = currentLang === 'ko'
+        ? '✓ 신청이 접수되었습니다! 담당 선생님이 곧 연락드리겠습니다.'
+        : '✓ Application received! Our teacher will contact you soon.';
+      form.reset();
+    } else {
+      // Supabase 미설정 시 데모 동작
+      note.className = 'form-note success';
+      note.textContent = currentLang === 'ko'
+        ? '✓ (데모) 신청 폼 동작 확인 — Supabase 연결 시 실제 저장됩니다.'
+        : '✓ (Demo) Form works — connect Supabase to save for real.';
+      form.reset();
+    }
   });
 
 });
