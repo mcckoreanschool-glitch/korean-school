@@ -10,7 +10,9 @@
 2. **New project**
    - Name: `mcc-korean-school`
    - Database Password: 강한 비밀번호 (어딘가 저장!)
-   - Region: `Northeast Asia (Seoul)` 권장
+   - Region: **학교와 가까운 미국 지역**을 고르세요 (방문자 접속 속도에 영향):
+     - 서부(캘리포니아·오리건·워싱턴 등) → `West US (North California)` 또는 `West US (Oregon)`
+     - 중부·동부 → `East US (North Virginia)` 또는 `East US (Ohio)`
 3. 생성 완료까지 1~2분 대기
 
 ## 2단계 · 데이터베이스 만들기 (SQL 실행)
