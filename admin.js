@@ -1,5 +1,5 @@
 // ============================================================
-//  늘 푸른 한글학교 — 관리자 로직
+//  MCC 한글학교 — 관리자 로직
 // ============================================================
 (function () {
   "use strict";
@@ -51,8 +51,10 @@
     loadNotices();
     loadGallery();
     loadPrograms();
+    loadHeroSlides();
     loadSiteImages();
   }
+  $("#heroAdd").addEventListener("change", (e) => { addHeroSlides(e.target.files); e.target.value = ""; });
 
   function setupTabs() {
     $$(".dash-tab").forEach((tab) => tab.addEventListener("click", () => {
@@ -478,9 +480,69 @@
   //  6) 사이트 이미지 (고정 슬롯)  — 사진은 gallery 버킷 site/ 폴더에 저장
   // ============================================================
   const SITE_SLOTS = [
-    { slot: "hero_bg",     label: "홈 · 히어로 배경",  hint: "가로로 넓은 사진 권장 (약 1600×900). 사진 위에 어두운 막이 덧입혀지고 홈 문구가 그 위에 얹힙니다." },
     { slot: "about_photo", label: "학교 소개 · 사진",  hint: "교실·단체·활동 사진 등. 가로형 배너로 표시됩니다." },
   ];
+
+  // ── 홈 히어로 슬라이드쇼 ──
+  async function loadHeroSlides() {
+    const box = $("#heroSlideList");
+    if (!box) return;
+    const { data, error } = await sb.from("hero_slides").select("*")
+      .order("sort_order", { ascending: true }).order("created_at", { ascending: true });
+    if (error) { box.innerHTML = `<p class="empty">불러오기 실패 (히어로 마이그레이션 SQL 실행을 확인하세요)</p>`; return; }
+    if (!data.length) { box.innerHTML = `<p class="empty">아직 슬라이드가 없습니다. "슬라이드 추가"로 사진을 올려보세요.</p>`; return; }
+    box.innerHTML = data.map((s, i) => `
+      <div class="admin-item si-item">
+        <div class="si-thumb"><img src="${esc(publicUrl(s.image_path))}" alt=""></div>
+        <div class="ai-main">
+          <div class="ai-meta">${i + 1}번째 ${s.published ? '<span class="pill pill-on">공개</span>' : '<span class="pill pill-off">숨김</span>'}</div>
+        </div>
+        <div class="ai-actions">
+          <button class="icon-btn" data-up="${s.id}" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button class="icon-btn" data-down="${s.id}" ${i === data.length - 1 ? "disabled" : ""}>▼</button>
+          <button class="icon-btn danger" data-del="${s.id}" data-path="${esc(s.image_path)}">삭제</button>
+        </div>
+      </div>`).join("");
+    $$("#heroSlideList [data-up]").forEach((b) => b.addEventListener("click", () => swapHeroSlide(data, b.dataset.up, -1)));
+    $$("#heroSlideList [data-down]").forEach((b) => b.addEventListener("click", () => swapHeroSlide(data, b.dataset.down, 1)));
+    $$("#heroSlideList [data-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("이 슬라이드를 삭제할까요?")) return;
+      await sb.storage.from(BUCKET).remove([b.dataset.path]);
+      const { error } = await sb.from("hero_slides").delete().eq("id", b.dataset.del);
+      if (error) return toast("삭제 실패", true);
+      toast("삭제되었습니다."); loadHeroSlides();
+    }));
+  }
+
+  async function swapHeroSlide(list, id, dir) {
+    const i = list.findIndex((x) => x.id === id);
+    const j = i + dir;
+    if (j < 0 || j >= list.length) return;
+    const a = list[i], b = list[j];
+    // 두 슬라이드의 순서값을 서로 맞바꿈 (동일하면 인덱스 기준으로 재설정)
+    const oa = a.sort_order, ob = b.sort_order;
+    const [na, nb] = oa === ob ? [j, i] : [ob, oa];
+    await sb.from("hero_slides").update({ sort_order: na }).eq("id", a.id);
+    await sb.from("hero_slides").update({ sort_order: nb }).eq("id", b.id);
+    loadHeroSlides();
+  }
+
+  async function addHeroSlides(files) {
+    if (!files || !files.length) return;
+    toast("업로드 중…");
+    const { data: existing } = await sb.from("hero_slides").select("sort_order").order("sort_order", { ascending: false }).limit(1);
+    let next = existing && existing.length ? (existing[0].sort_order + 1) : 0;
+    for (const file of Array.from(files)) {
+      const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+      const path = `hero/${Date.now()}-${next}.${ext}`;
+      const up = await sb.storage.from(BUCKET).upload(path, file, { upsert: false });
+      if (up.error) { toast("업로드 실패: " + up.error.message, true); continue; }
+      const res = await sb.from("hero_slides").insert({ image_path: path, sort_order: next });
+      if (res.error) { toast("저장 실패: " + res.error.message, true); }
+      next++;
+    }
+    toast("슬라이드가 추가되었습니다."); loadHeroSlides();
+  }
 
   async function loadSiteImages() {
     const box = $("#siteImgList");

@@ -341,6 +341,21 @@ img { max-width: 100%; display: block; }
 /* ============================================================
    사이트 이미지 슬롯 (DB에서 사진을 끼워 넣는 자리)
    ============================================================ */
+/* 홈 히어로 배경 슬라이드쇼 (크로스페이드) */
+.hero { position: relative; overflow: hidden; }
+.hero-slides { position: absolute; inset: 0; z-index: 0; }
+.hero-slide {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  opacity: 0; transition: opacity 2s ease-in-out;
+}
+.hero-slide.active { opacity: 1; }
+.hero-slides:not(:empty)::after {   /* 글씨 가독성용 어두운 막 (슬라이드가 있을 때만) */
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(rgba(20,16,6,.5), rgba(20,16,6,.42));
+}
+.hero-inner { position: relative; z-index: 1; }
+
 /* 홈 히어로에 배경 사진이 설정된 경우 → 글씨를 밝게 + 그림자 */
 .hero.has-bg-image .hero-inner { text-shadow: 0 1px 10px rgba(0,0,0,.45); }
 .hero.has-bg-image .hero-title,

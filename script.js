@@ -1,4 +1,4 @@
-// ===== 늘 푸른 한글학교 — 공개 사이트 인터랙션 =====
+// ===== MCC 한글학교 — 공개 사이트 인터랙션 =====
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -70,12 +70,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const sb = (window.getSupabase && window.getSupabase()) || null;
 
   if (sb) {
+    loadHeroSlides();
     loadSiteImages();
     loadPrograms();
     loadNotices();
     loadGallery();
   }
   // sb 가 없으면 index.html 의 기존 데모(정적) 내용이 그대로 보입니다.
+
+  /* 홈 히어로 배경 슬라이드쇼 — 여러 장을 천천히 크로스페이드.
+     슬라이드가 없으면 기존 단일 슬롯(hero_bg) → 그것도 없으면 그라데이션 유지 */
+  const HERO_INTERVAL = 6000;   // 각 사진 표시 시간(ms)  ※ 페이드는 CSS 2초
+  async function loadHeroSlides() {
+    const hero = document.getElementById('hero');
+    const box = document.getElementById('heroSlides');
+    if (!hero || !box) return;
+    const { data } = await sb.from('hero_slides').select('*')
+      .eq('published', true).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+    let paths = (data || []).map(r => r.image_path);
+    if (!paths.length) {   // 백워드 호환: 기존 단일 hero_bg 슬롯
+      const { data: legacy } = await sb.from('site_images').select('image_path').eq('slot', 'hero_bg').maybeSingle();
+      if (legacy && legacy.image_path) paths = [legacy.image_path];
+    }
+    if (!paths.length) return;   // 사진 없으면 기존 그라데이션 배경 유지
+    const urls = paths.map(p => sb.storage.from('gallery').getPublicUrl(p).data.publicUrl);
+    box.innerHTML = urls.map((u, i) =>
+      `<div class="hero-slide${i === 0 ? ' active' : ''}" style="background-image:url('${u}')"></div>`).join('');
+    hero.classList.add('has-bg-image');
+    if (urls.length < 2) return;   // 한 장이면 고정 배경
+    const slides = Array.from(box.querySelectorAll('.hero-slide'));
+    let idx = 0;
+    setInterval(() => {
+      slides[idx].classList.remove('active');
+      idx = (idx + 1) % slides.length;
+      slides[idx].classList.add('active');
+    }, HERO_INTERVAL);
+  }
 
   /* 사이트 고정 이미지(슬롯): [data-slot] 요소에 DB 사진을 끼워 넣음.
      비어 있으면 기존 디자인이 그대로 유지됩니다. */

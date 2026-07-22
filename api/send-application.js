@@ -48,8 +48,8 @@ module.exports = async function handler(req, res) {
   const html = `
   <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;color:#221e13">
     <div style="background:#f2ce54;padding:22px 24px;border-radius:14px 14px 0 0">
-      <h1 style="margin:0;font-size:20px;color:#33290a">늘 푸른 한글학교</h1>
-      <p style="margin:4px 0 0;font-size:13px;color:#5c4a12">Neul Pureun Korean School</p>
+      <h1 style="margin:0;font-size:20px;color:#33290a">MCC 한글학교</h1>
+      <p style="margin:4px 0 0;font-size:13px;color:#5c4a12">MCC Korean School</p>
     </div>
     <div style="border:1px solid #ece7d8;border-top:none;border-radius:0 0 14px 14px;padding:26px 24px">
       <p style="font-size:16px">${safeName}님, 안녕하세요! 👋</p>
@@ -76,9 +76,9 @@ module.exports = async function handler(req, res) {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: `늘 푸른 한글학교 <${FROM_EMAIL}>`,
+        from: `MCC 한글학교 <${FROM_EMAIL}>`,
         to: [email],
-        subject: "[늘 푸른 한글학교] 입학 신청서 안내 / Enrollment Application",
+        subject: "[MCC 한글학교] 입학 신청서 안내 / Enrollment Application",
         html,
       }),
     });

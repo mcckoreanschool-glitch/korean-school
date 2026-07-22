@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
-  <title>관리자 · 늘 푸른 한글학교</title>
+  <title>관리자 · MCC 한글학교</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -21,8 +21,8 @@
   <section id="loginView" class="login-view" hidden>
     <form class="login-card" id="loginForm">
       <div class="login-brand">
-        <span class="brand-mark">늘푸른</span>
-        <div><strong>관리자 로그인</strong><small>늘 푸른 한글학교</small></div>
+        <span class="brand-mark">MCC</span>
+        <div><strong>관리자 로그인</strong><small>MCC 한글학교</small></div>
       </div>
       <div class="field">
         <label for="loginEmail">이메일</label>
@@ -41,7 +41,7 @@
   <div id="dashView" class="dash" hidden>
     <aside class="dash-side">
       <div class="dash-brand">
-        <span class="brand-mark">늘푸른</span>
+        <span class="brand-mark">MCC</span>
         <div><strong>관리자</strong><small>Admin</small></div>
       </div>
       <nav class="dash-nav" id="dashNav">
@@ -127,8 +127,21 @@
       <!-- 탭: 사이트 이미지 -->
       <section class="panel" data-panel="siteimg">
         <div class="panel-head"><h1>사이트 이미지</h1></div>
-        <p class="panel-hint">페이지의 정해진 자리에 들어가는 사진입니다. 사진을 올리면 사이트에 바로 반영되고, 삭제하면 기본 디자인으로 돌아갑니다. (수업별 사진은 <b>수업/프로그램</b> 탭에서 관리)</p>
-        <div id="siteImgList" class="card-list"><p class="empty">불러오는 중…</p></div>
+
+        <div class="si-block">
+          <div class="panel-head sub">
+            <h2>🖼️ 홈 히어로 슬라이드쇼</h2>
+            <label class="btn btn-primary btn-sm file-btn">+ 슬라이드 추가<input type="file" accept="image/*" multiple hidden id="heroAdd"></label>
+          </div>
+          <p class="panel-hint">여러 장을 올리면 홈 상단 배경이 <b>천천히 페이드로 전환</b>됩니다 (한 장당 약 6초). 순서는 ▲▼로 조절하세요. 한 장만 올리면 고정 배경이 됩니다.</p>
+          <div id="heroSlideList" class="card-list"><p class="empty">불러오는 중…</p></div>
+        </div>
+
+        <div class="si-block">
+          <div class="panel-head sub"><h2>📌 고정 이미지</h2></div>
+          <p class="panel-hint">정해진 자리에 들어가는 사진입니다. 삭제하면 기본 디자인으로 돌아갑니다. (수업별 사진은 <b>수업/프로그램</b> 탭에서 관리)</p>
+          <div id="siteImgList" class="card-list"><p class="empty">불러오는 중…</p></div>
+        </div>
       </section>
 
     </main>
