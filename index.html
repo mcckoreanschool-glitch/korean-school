@@ -46,7 +46,7 @@
   </header>
 
   <!-- ===== Hero ===== -->
-  <section class="hero" id="hero">
+  <section class="hero" id="hero" data-slot="hero_bg" data-slot-type="bg">
     <div class="container hero-inner">
       <p class="hero-eyebrow" data-ko="늘 푸른 선교 교회 부설 한글학교" data-en="A ministry of Neul Pureun Mission Church">늘 푸른 선교 교회 부설 한글학교</p>
       <h1 class="hero-title">
@@ -73,6 +73,10 @@
         <p class="kicker" data-ko="학교 소개" data-en="About Us">학교 소개</p>
         <h2 data-ko="함께 자라는 한글학교" data-en="Growing together, in Korean">함께 자라는 한글학교</h2>
       </div>
+
+      <figure class="about-photo" data-slot-wrap hidden>
+        <img data-slot="about_photo" alt="" loading="lazy">
+      </figure>
 
       <div class="about-grid">
         <div class="about-message card">

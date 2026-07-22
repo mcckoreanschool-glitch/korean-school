@@ -168,3 +168,15 @@
   .dash-main { padding: 20px 16px; }
   .field-two { grid-template-columns: 1fr; }
 }
+
+/* 사이트 이미지 슬롯 목록 */
+.si-item { display: flex; align-items: center; gap: 16px; }
+.si-thumb { flex: 0 0 140px; width: 140px; height: 88px; border-radius: 10px; overflow: hidden; background: #f2efe6; border: 1px solid var(--line, #ece7d8); display: flex; align-items: center; justify-content: center; }
+.si-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.si-empty { font-size: 13px; color: #9a9179; }
+.si-item .ai-main { flex: 1 1 auto; }
+.file-btn { cursor: pointer; }
+
+/* 프로그램 수정창 현재 사진 미리보기 */
+.pm-current { margin-bottom: 10px; border-radius: 10px; overflow: hidden; max-width: 240px; }
+.pm-current img { width: 100%; height: 130px; object-fit: cover; display: block; }

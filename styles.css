@@ -337,3 +337,23 @@ img { max-width: 100%; display: block; }
   .pg-grid { grid-template-columns: 1fr; }
   .lightbox-nav { width: 40px; height: 40px; }
 }
+
+/* ============================================================
+   사이트 이미지 슬롯 (DB에서 사진을 끼워 넣는 자리)
+   ============================================================ */
+/* 홈 히어로에 배경 사진이 설정된 경우 → 글씨를 밝게 + 그림자 */
+.hero.has-bg-image .hero-inner { text-shadow: 0 1px 10px rgba(0,0,0,.45); }
+.hero.has-bg-image .hero-title,
+.hero.has-bg-image .hero-sub { color: #fff; }
+.hero.has-bg-image .hero-title .accent { color: var(--butter-300); }
+.hero.has-bg-image .hero-eyebrow { color: #33290a; background: rgba(255,255,255,.85); }
+.hero.has-bg-image .hero-stats .stat strong { color: #fff; }
+.hero.has-bg-image .hero-stats .stat span { color: rgba(255,255,255,.82); }
+
+/* 학교 소개 사진 (배너형) */
+.about-photo { margin: 4px 0 30px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+.about-photo img { width: 100%; height: clamp(220px, 34vw, 400px); object-fit: cover; display: block; }
+
+/* 수업/프로그램 카드의 대표 사진 (카드 상단에 꽉 차게) */
+.program-photo { margin: -30px -30px 18px; overflow: hidden; border-radius: var(--radius) var(--radius) 0 0; }
+.program-photo img { width: 100%; height: 150px; object-fit: cover; display: block; }

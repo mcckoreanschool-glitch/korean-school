@@ -70,11 +70,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const sb = (window.getSupabase && window.getSupabase()) || null;
 
   if (sb) {
+    loadSiteImages();
     loadPrograms();
     loadNotices();
     loadGallery();
   }
   // sb 가 없으면 index.html 의 기존 데모(정적) 내용이 그대로 보입니다.
+
+  /* 사이트 고정 이미지(슬롯): [data-slot] 요소에 DB 사진을 끼워 넣음.
+     비어 있으면 기존 디자인이 그대로 유지됩니다. */
+  async function loadSiteImages() {
+    const { data, error } = await sb.from('site_images').select('*');
+    if (error || !data) return;
+    const map = {};
+    data.forEach(r => { map[r.slot] = r; });
+    document.querySelectorAll('[data-slot]').forEach(el => {
+      const rec = map[el.dataset.slot];
+      if (!rec || !rec.image_path) return;
+      const url = sb.storage.from('gallery').getPublicUrl(rec.image_path).data.publicUrl;
+      if (el.dataset.slotType === 'bg') {
+        el.style.backgroundImage =
+          `linear-gradient(rgba(20,16,6,.5), rgba(20,16,6,.42)), url('${url}')`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.classList.add('has-bg-image');
+      } else {
+        el.src = url;
+        el.alt = (currentLang === 'en' ? rec.alt_en : rec.alt_ko) || '';
+        const wrap = el.closest('[data-slot-wrap]');
+        if (wrap) wrap.hidden = false; else el.hidden = false;
+      }
+    });
+  }
 
   async function loadPrograms() {
     const { data, error } = await sb.from('programs').select('*')
@@ -82,7 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (error || !data || !data.length) return;
     const grid = document.getElementById('programGrid');
     grid.innerHTML = data.map(p => `
-      <div class="program card">
+      <div class="program card${p.image_path ? ' has-photo' : ''}">
+        ${p.image_path ? `<figure class="program-photo"><img src="${esc(sb.storage.from('gallery').getPublicUrl(p.image_path).data.publicUrl)}" alt="${esc(p.name_ko)}" loading="lazy"></figure>` : ''}
         <span class="program-tag" data-ko="${esc(p.tag_ko)}" data-en="${esc(p.tag_en || p.tag_ko)}">${esc(p.tag_ko)}</span>
         <h3 data-ko="${esc(p.name_ko)}" data-en="${esc(p.name_en || p.name_ko)}">${esc(p.name_ko)}</h3>
         <p data-ko="${esc(p.desc_ko)}" data-en="${esc(p.desc_en || p.desc_ko)}">${esc(p.desc_ko)}</p>

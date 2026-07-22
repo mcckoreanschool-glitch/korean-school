@@ -50,6 +50,7 @@
         <button class="dash-tab" data-tab="notices">📢 공지사항</button>
         <button class="dash-tab" data-tab="gallery">🖼️ 갤러리</button>
         <button class="dash-tab" data-tab="programs">📚 수업/프로그램</button>
+        <button class="dash-tab" data-tab="siteimg">🎨 사이트 이미지</button>
       </nav>
       <div class="dash-foot">
         <a href="index.html" target="_blank" class="dash-link">🌐 사이트 보기</a>
@@ -119,7 +120,15 @@
       <!-- 탭: 수업/프로그램 -->
       <section class="panel" data-panel="programs">
         <div class="panel-head"><h1>수업 / 프로그램</h1><button class="btn btn-primary btn-sm" id="newProgram">+ 새 프로그램</button></div>
+        <p class="panel-hint">각 수업의 "대표 사진"은 수정 창에서 올릴 수 있어요. 사진을 넣으면 홈 화면 수업 카드 위에 표시됩니다.</p>
         <div id="programsList" class="card-list"><p class="empty">불러오는 중…</p></div>
+      </section>
+
+      <!-- 탭: 사이트 이미지 -->
+      <section class="panel" data-panel="siteimg">
+        <div class="panel-head"><h1>사이트 이미지</h1></div>
+        <p class="panel-hint">페이지의 정해진 자리에 들어가는 사진입니다. 사진을 올리면 사이트에 바로 반영되고, 삭제하면 기본 디자인으로 돌아갑니다. (수업별 사진은 <b>수업/프로그램</b> 탭에서 관리)</p>
+        <div id="siteImgList" class="card-list"><p class="empty">불러오는 중…</p></div>
       </section>
 
     </main>

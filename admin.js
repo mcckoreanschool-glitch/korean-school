@@ -51,6 +51,7 @@
     loadNotices();
     loadGallery();
     loadPrograms();
+    loadSiteImages();
   }
 
   function setupTabs() {
@@ -380,6 +381,12 @@
       <div class="field"><label>반 이름 (영어)</label><input id="m_name_en" value="${esc(p.name_en)}"></div>
       <div class="field"><label>설명 (한국어)</label><textarea id="m_desc_ko" rows="2">${esc(p.desc_ko)}</textarea></div>
       <div class="field"><label>설명 (영어)</label><textarea id="m_desc_en" rows="2">${esc(p.desc_en)}</textarea></div>
+      <div class="field">
+        <label>대표 사진 (선택)</label>
+        ${p.image_path ? `<div class="pm-current"><img src="${esc(publicUrl(p.image_path))}" alt=""></div>` : ""}
+        <input type="file" id="m_img" accept="image/*">
+        ${p.image_path ? `<label class="check-row"><input type="checkbox" id="m_img_remove"> 현재 사진 제거</label>` : ""}
+      </div>
       <label class="check-row"><input type="checkbox" id="m_pub" ${p.published !== false ? "checked" : ""}> 사이트에 공개</label>
     `, async () => {
       const payload = {
@@ -388,6 +395,21 @@
         published: $("#m_pub").checked,
       };
       if (!payload.name_ko) { toast("반 이름(한국어)은 필수입니다.", true); return false; }
+      // 대표 사진: 새 파일이 있으면 업로드(기존 삭제), '제거' 체크 시 비움, 아니면 유지
+      let image_path = p.image_path || null;
+      const imgFile = $("#m_img").files[0];
+      if (imgFile) {
+        const ext = (imgFile.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+        const path = `programs/${Date.now()}.${ext}`;
+        const up = await sb.storage.from(BUCKET).upload(path, imgFile, { upsert: false });
+        if (up.error) { toast("사진 업로드 실패: " + up.error.message, true); return false; }
+        if (p.image_path) await sb.storage.from(BUCKET).remove([p.image_path]);
+        image_path = path;
+      } else if ($("#m_img_remove") && $("#m_img_remove").checked) {
+        if (p.image_path) await sb.storage.from(BUCKET).remove([p.image_path]);
+        image_path = null;
+      }
+      payload.image_path = image_path;
       const res = p.id ? await sb.from("programs").update(payload).eq("id", p.id) : await sb.from("programs").insert(payload);
       if (res.error) { toast("저장 실패: " + res.error.message, true); return false; }
       toast("저장되었습니다."); loadPrograms(); return true;
@@ -451,6 +473,66 @@
       toast("사진이 추가되었습니다."); loadGallery(); return true;
     });
   });
+
+  // ============================================================
+  //  6) 사이트 이미지 (고정 슬롯)  — 사진은 gallery 버킷 site/ 폴더에 저장
+  // ============================================================
+  const SITE_SLOTS = [
+    { slot: "hero_bg",     label: "홈 · 히어로 배경",  hint: "가로로 넓은 사진 권장 (약 1600×900). 사진 위에 어두운 막이 덧입혀지고 홈 문구가 그 위에 얹힙니다." },
+    { slot: "about_photo", label: "학교 소개 · 사진",  hint: "교실·단체·활동 사진 등. 가로형 배너로 표시됩니다." },
+  ];
+
+  async function loadSiteImages() {
+    const box = $("#siteImgList");
+    const { data, error } = await sb.from("site_images").select("*");
+    if (error) { box.innerHTML = `<p class="empty">불러오기 실패 (마이그레이션 SQL을 실행했는지 확인하세요)</p>`; return; }
+    const map = {};
+    (data || []).forEach((r) => { map[r.slot] = r; });
+    box.innerHTML = SITE_SLOTS.map((s) => {
+      const rec = map[s.slot];
+      const thumb = rec
+        ? `<img src="${esc(publicUrl(rec.image_path))}" alt="">`
+        : `<div class="si-empty" data-ko="사진 없음" data-en="No photo">사진 없음</div>`;
+      return `
+      <div class="admin-item si-item">
+        <div class="si-thumb">${thumb}</div>
+        <div class="ai-main">
+          <h3>${esc(s.label)}</h3>
+          <p class="ai-meta">${esc(s.hint)}</p>
+        </div>
+        <div class="ai-actions">
+          <label class="btn btn-primary btn-sm file-btn">${rec ? "변경" : "사진 올리기"}<input type="file" accept="image/*" hidden data-upload="${s.slot}"></label>
+          ${rec ? `<button class="icon-btn danger" data-remove="${s.slot}" data-path="${esc(rec.image_path)}">삭제</button>` : ""}
+        </div>
+      </div>`;
+    }).join("");
+    $$("#siteImgList [data-upload]").forEach((inp) =>
+      inp.addEventListener("change", () => uploadSiteImage(inp.dataset.upload, inp.files[0])));
+    $$("#siteImgList [data-remove]").forEach((b) =>
+      b.addEventListener("click", () => removeSiteImage(b.dataset.remove, b.dataset.path)));
+  }
+
+  async function uploadSiteImage(slot, file) {
+    if (!file) return;
+    toast("업로드 중…");
+    const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+    const path = `site/${slot}-${Date.now()}.${ext}`;
+    const up = await sb.storage.from(BUCKET).upload(path, file, { upsert: false });
+    if (up.error) { toast("업로드 실패: " + up.error.message, true); return; }
+    const { data: prev } = await sb.from("site_images").select("image_path").eq("slot", slot).maybeSingle();
+    const res = await sb.from("site_images").upsert({ slot, image_path: path, updated_at: new Date().toISOString() });
+    if (res.error) { toast("저장 실패: " + res.error.message, true); return; }
+    if (prev && prev.image_path) await sb.storage.from(BUCKET).remove([prev.image_path]);
+    toast("저장되었습니다."); loadSiteImages();
+  }
+
+  async function removeSiteImage(slot, path) {
+    if (!confirm("이 사진을 삭제할까요? 해당 자리는 기본 디자인으로 돌아갑니다.")) return;
+    if (path) await sb.storage.from(BUCKET).remove([path]);
+    const { error } = await sb.from("site_images").delete().eq("slot", slot);
+    if (error) return toast("삭제 실패", true);
+    toast("삭제되었습니다."); loadSiteImages();
+  }
 
   // ============================================================
   //  공용: 삭제 / 모달
