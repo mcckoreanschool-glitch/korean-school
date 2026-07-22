@@ -121,6 +121,29 @@
 
   $("#reqFilter").addEventListener("change", renderRequests);
 
+  // 공용: 서버리스 함수로 신청서 링크 이메일 발송
+  async function emailApplicationLink(email, name, token) {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch("/api/send-application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ email, name, applyToken: token }),
+      });
+      const j = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        const detail = j.detail ? (typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail)) : "";
+        console.error("send-application failed:", resp.status, j);
+        alert("메일 발송 실패 (HTTP " + resp.status + ")\n\n" + (j.error || "") + "\n" + detail);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      alert("메일 발송 오류: " + e.message);
+      return false;
+    }
+  }
+
   async function sendApplication(id, btn) {
     const r = reqCache.find((x) => x.id === id);
     if (!r) return;
@@ -132,27 +155,39 @@
       .update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", id);
     if (upErr) { toast("상태 변경 실패", true); if (btn) { btn.disabled = false; btn.textContent = "📨 신청서 보내기"; } return; }
 
-    // 이메일 발송 (서버리스 함수)
-    try {
-      const { data: { session } } = await sb.auth.getSession();
-      const resp = await fetch("/api/send-application", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ email: r.email, name: r.requester_name, applyToken: r.token }),
-      });
-      const j = await resp.json().catch(() => ({}));
-      if (!resp.ok) {
-        const detail = j.detail ? (typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail)) : "";
-        console.error("send-application failed:", resp.status, j);
-        alert("메일 발송 실패 (HTTP " + resp.status + ")\n\n" + (j.error || "") + "\n" + detail);
-        toast("메일 발송 실패 — 자세한 내용은 팝업 참고", true);
-      } else toast("✓ 신청서를 이메일로 보냈어요!");
-    } catch (e) {
-      alert("메일 발송 오류: " + e.message);
-      toast("메일 발송 오류", true);
-    }
+    const ok = await emailApplicationLink(r.email, r.requester_name, r.token);
+    toast(ok ? "✓ 신청서를 이메일로 보냈어요!" : "메일 발송 실패 (상태는 '발송됨') — 팝업 참고", !ok);
     loadRequests();
   }
+
+  // 관리자가 직접 학부모에게 신청서 링크 발송 (요청 없이)
+  $("#directSend").addEventListener("click", () => {
+    openModal("직접 신청서 보내기", `
+      <p class="panel-hint" style="margin:0 0 4px">학부모 이메일을 알고 있을 때, 요청 없이 바로 신청서 작성 링크를 보냅니다.</p>
+      <div class="field"><label>학부모 이름</label><input id="d_name" placeholder="예) 김보람"></div>
+      <div class="field"><label>이메일 <span style="color:#c0392b">*</span></label><input id="d_email" type="email" placeholder="parent@example.com"></div>
+      <div class="field-two">
+        <div class="field"><label>연락처 (선택)</label><input id="d_phone"></div>
+        <div class="field"><label>메모 (선택)</label><input id="d_msg" placeholder="관리자용 메모"></div>
+      </div>
+    `, async () => {
+      const email = $("#d_email").value.trim();
+      const name = $("#d_name").value.trim();
+      if (!email) { toast("이메일을 입력하세요.", true); return false; }
+      // 이미 'sent' 상태로 요청 레코드 생성 (토큰 자동 발급)
+      const { data, error } = await sb.from("form_requests").insert({
+        requester_name: name || email, email,
+        phone: $("#d_phone").value.trim(), message: $("#d_msg").value.trim(),
+        status: "sent", sent_at: new Date().toISOString(),
+      }).select().single();
+      if (error) { toast("생성 실패: " + error.message, true); return false; }
+
+      const ok = await emailApplicationLink(email, name || email, data.token);
+      toast(ok ? "✓ 신청서를 이메일로 보냈어요!" : "레코드는 생성됐지만 메일 발송 실패 — 팝업 참고", !ok);
+      loadRequests();
+      return true;
+    });
+  });
 
   // ============================================================
   //  2) 제출된 신청서 (applications)
