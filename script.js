@@ -132,6 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('requestForm');
   const note = document.getElementById('formNote');
 
+  if (window.attachPhoneFormat) window.attachPhoneFormat(document.getElementById('reqPhone'));
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const required = form.querySelectorAll('[required]');

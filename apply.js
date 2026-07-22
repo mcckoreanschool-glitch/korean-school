@@ -29,6 +29,10 @@
     // 요청 시 남긴 이메일을 보호자 이메일에 기본 입력
     if (req.email) form.guardian_email.value = req.email;
     show(form);
+    if (window.attachPhoneFormat) {
+      window.attachPhoneFormat(form.guardian_phone);
+      window.attachPhoneFormat(form.emergency_phone);
+    }
     setupSubmit(sb);
   }
 

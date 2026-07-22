@@ -187,6 +187,7 @@
       loadRequests();
       return true;
     });
+    if (window.attachPhoneFormat) window.attachPhoneFormat($("#d_phone"));
   });
 
   // ============================================================

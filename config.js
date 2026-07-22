@@ -33,3 +33,21 @@ window.getSupabase = function () {
   }
   return window._sbClient;
 };
+
+// ── 미국식 전화번호 서식: 9495258720 → (949) 525-8720 ──
+window.formatUSPhone = function (v) {
+  const d = String(v || "").replace(/\D/g, "").slice(0, 10);
+  if (!d) return "";
+  if (d.length < 4) return "(" + d;
+  if (d.length < 7) return "(" + d.slice(0, 3) + ") " + d.slice(3);
+  return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+};
+
+// 전화 입력칸에 자동 서식 연결 (입력할 때마다 정리)
+window.attachPhoneFormat = function (input) {
+  if (!input) return;
+  input.setAttribute("inputmode", "tel");
+  input.setAttribute("maxlength", "16");
+  input.addEventListener("input", () => { input.value = window.formatUSPhone(input.value); });
+  if (input.value) input.value = window.formatUSPhone(input.value);
+};
