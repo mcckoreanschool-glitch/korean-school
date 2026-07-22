@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>갤러리 | 늘 푸른 한글학교 · Neul Pureun Korean School</title>
+  <meta name="description" content="늘 푸른 한글학교의 수업, 행사, 문화의 날 사진 갤러리입니다." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== Header / Nav ===== -->
+  <header class="header" id="header">
+    <div class="container nav">
+      <a href="index.html#hero" class="brand">
+        <span class="brand-mark">늘푸른</span>
+        <span class="brand-text">
+          <strong data-ko="늘 푸른 한글학교" data-en="Neul Pureun Korean School">늘 푸른 한글학교</strong>
+          <small data-ko="늘 푸른 선교 교회 부설" data-en="A ministry of Neul Pureun Mission Church">늘 푸른 선교 교회 부설</small>
+        </span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html#about" data-ko="학교 소개" data-en="About">학교 소개</a>
+        <a href="index.html#programs" data-ko="수업 안내" data-en="Programs">수업 안내</a>
+        <a href="index.html#admission" data-ko="입학 신청" data-en="Admission">입학 신청</a>
+        <a href="index.html#news" data-ko="공지사항" data-en="News">공지사항</a>
+        <a href="gallery.html" data-ko="갤러리" data-en="Gallery">갤러리</a>
+        <a href="index.html#location" data-ko="오시는 길" data-en="Location">오시는 길</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="lang-toggle" id="langToggle" aria-label="Toggle language">
+          <span class="lang-opt active" data-lang="ko">KO</span>
+          <span class="lang-sep">/</span>
+          <span class="lang-opt" data-lang="en">EN</span>
+        </button>
+        <button class="menu-btn" id="menuBtn" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Gallery ===== -->
+  <main class="section gallery-page">
+    <div class="container">
+      <div class="section-head">
+        <p class="kicker" data-ko="갤러리" data-en="Gallery">갤러리</p>
+        <h2 data-ko="함께한 순간들" data-en="Moments together">함께한 순간들</h2>
+        <p class="section-desc" data-ko="수업, 전통놀이, 문화의 날 등 함께한 시간들을 담았습니다. 사진을 눌러 크게 보세요." data-en="Classes, traditional games, culture days, and more. Click a photo to view it larger.">수업, 전통놀이, 문화의 날 등 함께한 시간들을 담았습니다. 사진을 눌러 크게 보세요.</p>
+      </div>
+
+      <div class="pg-grid" id="pgGrid">
+        <p class="pg-empty" data-ko="사진을 불러오는 중…" data-en="Loading photos…">사진을 불러오는 중…</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Lightbox ===== -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lbClose" aria-label="Close">&times;</button>
+    <button class="lightbox-nav lightbox-prev" id="lbPrev" aria-label="Previous">&#8249;</button>
+    <img class="lightbox-img" id="lbImg" src="" alt="" />
+    <button class="lightbox-nav lightbox-next" id="lbNext" aria-label="Next">&#8250;</button>
+    <p class="lightbox-cap" id="lbCap"></p>
+  </div>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong data-ko="늘 푸른 한글학교" data-en="Neul Pureun Korean School">늘 푸른 한글학교</strong>
+        <small data-ko="늘 푸른 선교 교회 부설 · 한국어와 문화를 함께 배웁니다" data-en="A ministry of Neul Pureun Mission Church · Language and culture, together">늘 푸른 선교 교회 부설 · 한국어와 문화를 함께 배웁니다</small>
+      </div>
+      <nav class="footer-links">
+        <a href="index.html#about" data-ko="학교 소개" data-en="About">학교 소개</a>
+        <a href="index.html#programs" data-ko="수업 안내" data-en="Programs">수업 안내</a>
+        <a href="index.html#admission" data-ko="입학 신청" data-en="Admission">입학 신청</a>
+        <a href="index.html#location" data-ko="오시는 길" data-en="Location">오시는 길</a>
+      </nav>
+      <p class="footer-copy">© 2026 늘 푸른 한글학교 · Neul Pureun Korean School</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    /* ---- 언어 전환 (index.html 과 localStorage 로 공유) ---- */
+    const langToggle = document.getElementById('langToggle');
+    const langOpts = langToggle.querySelectorAll('.lang-opt');
+    let currentLang = localStorage.getItem('npks_lang') || 'ko';
+
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('npks_lang', lang);
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-ko]').forEach(el => {
+        const val = el.getAttribute('data-' + lang);
+        if (val !== null) el.innerHTML = val;
+      });
+      langOpts.forEach(o => o.classList.toggle('active', o.dataset.lang === lang));
+    }
+    langToggle.addEventListener('click', () => applyLang(currentLang === 'ko' ? 'en' : 'ko'));
+    applyLang(currentLang);
+
+    /* ---- 모바일 메뉴 ---- */
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+    menuBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+      menuBtn.classList.toggle('open');
+    });
+
+    /* ---- 헤더 스크롤 그림자 ---- */
+    const header = document.getElementById('header');
+    const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    /* ---- 라이트박스 ---- */
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lbImg');
+    const lbCap = document.getElementById('lbCap');
+    let photos = [];
+    let idx = 0;
+
+    function showPhoto(i) {
+      if (!photos.length) return;
+      idx = (i + photos.length) % photos.length;
+      const p = photos[idx];
+      lbImg.src = p.url;
+      lbImg.alt = p.capKo || '';
+      const cap = currentLang === 'en' ? (p.capEn || p.capKo) : p.capKo;
+      lbCap.textContent = cap || '';
+    }
+    function openLb(i) { showPhoto(i); lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); }
+    function closeLb() { lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); lbImg.src = ''; }
+
+    document.getElementById('lbClose').addEventListener('click', closeLb);
+    document.getElementById('lbPrev').addEventListener('click', () => showPhoto(idx - 1));
+    document.getElementById('lbNext').addEventListener('click', () => showPhoto(idx + 1));
+    lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
+    document.addEventListener('keydown', (e) => {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLb();
+      else if (e.key === 'ArrowLeft') showPhoto(idx - 1);
+      else if (e.key === 'ArrowRight') showPhoto(idx + 1);
+    });
+
+    /* ---- 사진 불러오기 ---- */
+    const grid = document.getElementById('pgGrid');
+    const sb = (window.getSupabase && window.getSupabase()) || null;
+
+    async function loadGallery() {
+      if (!sb) {
+        grid.innerHTML = '<p class="pg-empty" data-ko="사진을 불러올 수 없습니다." data-en="Unable to load photos.">사진을 불러올 수 없습니다.</p>';
+        applyLang(currentLang);
+        return;
+      }
+      const { data, error } = await sb.from('gallery').select('*')
+        .eq('published', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false });
+      if (error) {
+        grid.innerHTML = '<p class="pg-empty" data-ko="사진을 불러올 수 없습니다." data-en="Unable to load photos.">사진을 불러올 수 없습니다.</p>';
+        applyLang(currentLang);
+        return;
+      }
+      if (!data || !data.length) {
+        grid.innerHTML = '<p class="pg-empty" data-ko="아직 등록된 사진이 없습니다." data-en="No photos yet.">아직 등록된 사진이 없습니다.</p>';
+        applyLang(currentLang);
+        return;
+      }
+      photos = data.map(g => ({
+        url: sb.storage.from('gallery').getPublicUrl(g.image_path).data.publicUrl,
+        capKo: g.caption_ko || '',
+        capEn: g.caption_en || g.caption_ko || '',
+      }));
+      grid.innerHTML = photos.map((p, i) => `
+        <figure class="pg-item" data-i="${i}">
+          <img src="${esc(p.url)}" alt="${esc(p.capKo)}" loading="lazy">
+          ${p.capKo ? `<figcaption class="pg-cap" data-ko="${esc(p.capKo)}" data-en="${esc(p.capEn)}">${esc(p.capKo)}</figcaption>` : ''}
+        </figure>`).join('');
+      applyLang(currentLang);
+      grid.querySelectorAll('.pg-item').forEach(el =>
+        el.addEventListener('click', () => openLb(parseInt(el.dataset.i, 10)))
+      );
+    }
+
+    loadGallery();
+  });
+  </script>
+</body>
+</html>

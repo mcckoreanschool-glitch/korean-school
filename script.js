@@ -8,10 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- 1. 언어 전환 (KO / EN) ---- */
   const langToggle = document.getElementById('langToggle');
   const langOpts = langToggle.querySelectorAll('.lang-opt');
-  let currentLang = 'ko';
+  let currentLang = localStorage.getItem('npks_lang') || 'ko';
 
   function applyLang(lang) {
     currentLang = lang;
+    localStorage.setItem('npks_lang', lang);
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-ko]').forEach(el => {
       const val = el.getAttribute('data-' + lang);
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     langOpts.forEach(o => o.classList.toggle('active', o.dataset.lang === lang));
   }
   langToggle.addEventListener('click', () => applyLang(currentLang === 'ko' ? 'en' : 'ko'));
+  applyLang(currentLang);
 
   /* ---- 2. 모바일 메뉴 ---- */
   const menuBtn = document.getElementById('menuBtn');
@@ -118,9 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('galleryGrid');
     grid.innerHTML = data.map(g => {
       const url = sb.storage.from('gallery').getPublicUrl(g.image_path).data.publicUrl;
-      return `<figure class="g-item g-photo" style="background-image:url('${esc(url)}')">
+      return `<a class="g-item g-photo" href="gallery.html" style="background-image:url('${esc(url)}')">
         ${g.caption_ko ? `<span data-ko="${esc(g.caption_ko)}" data-en="${esc(g.caption_en || g.caption_ko)}">${esc(g.caption_ko)}</span>` : ''}
-      </figure>`;
+      </a>`;
     }).join('');
     applyLang(currentLang);
     observeReveals(grid.querySelectorAll('.g-item'));
