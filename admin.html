@@ -13,20 +13,16 @@
 </head>
 <body class="admin-body">
 
-  <!-- ===== 설정 안내 배너 (Supabase 미설정 시) ===== -->
   <div id="configWarn" class="config-warn" hidden>
     ⚠️ Supabase가 아직 연결되지 않았어요. <code>config.js</code>에 Project URL과 anon key를 넣어주세요.
   </div>
 
-  <!-- ===== 로그인 화면 ===== -->
+  <!-- ===== 로그인 ===== -->
   <section id="loginView" class="login-view" hidden>
     <form class="login-card" id="loginForm">
       <div class="login-brand">
         <span class="brand-mark">늘푸른</span>
-        <div>
-          <strong>관리자 로그인</strong>
-          <small>늘 푸른 한글학교</small>
-        </div>
+        <div><strong>관리자 로그인</strong><small>늘 푸른 한글학교</small></div>
       </div>
       <div class="field">
         <label for="loginEmail">이메일</label>
@@ -43,14 +39,14 @@
 
   <!-- ===== 대시보드 ===== -->
   <div id="dashView" class="dash" hidden>
-    <!-- 사이드바 -->
     <aside class="dash-side">
       <div class="dash-brand">
         <span class="brand-mark">늘푸른</span>
         <div><strong>관리자</strong><small>Admin</small></div>
       </div>
       <nav class="dash-nav" id="dashNav">
-        <button class="dash-tab active" data-tab="applications">📝 입학 신청<span class="tab-badge" id="badgeApps">0</span></button>
+        <button class="dash-tab active" data-tab="requests">📨 신청서 요청<span class="tab-badge" id="badgeReq">0</span></button>
+        <button class="dash-tab" data-tab="applications">📋 제출된 신청서<span class="tab-badge" id="badgeApps">0</span></button>
         <button class="dash-tab" data-tab="notices">📢 공지사항</button>
         <button class="dash-tab" data-tab="gallery">🖼️ 갤러리</button>
         <button class="dash-tab" data-tab="programs">📚 수업/프로그램</button>
@@ -62,78 +58,80 @@
       </div>
     </aside>
 
-    <!-- 메인 -->
     <main class="dash-main">
 
-      <!-- 탭: 입학 신청 -->
-      <section class="panel active" data-panel="applications">
+      <!-- 탭: 신청서 요청 -->
+      <section class="panel active" data-panel="requests">
         <div class="panel-head">
-          <h1>입학 신청 접수</h1>
+          <h1>신청서 요청</h1>
+          <div class="panel-tools">
+            <select id="reqFilter">
+              <option value="">전체 상태</option>
+              <option value="requested">요청됨</option>
+              <option value="sent">발송됨</option>
+              <option value="completed">작성완료</option>
+              <option value="archived">보관</option>
+            </select>
+          </div>
+        </div>
+        <p class="panel-hint">방문자가 신청서를 요청하면 여기 표시돼요. <b>"신청서 보내기"</b>를 누르면 신청자 이메일로 작성 링크가 자동 발송됩니다.</p>
+        <div class="table-wrap">
+          <table class="data-table" id="reqTable">
+            <thead>
+              <tr><th>요청일</th><th>이름</th><th>이메일</th><th>연락처</th><th>자녀수</th><th>문의</th><th>상태</th><th>작업</th></tr>
+            </thead>
+            <tbody id="reqBody"><tr><td colspan="8" class="empty">불러오는 중…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 탭: 제출된 신청서 -->
+      <section class="panel" data-panel="applications">
+        <div class="panel-head">
+          <h1>제출된 신청서</h1>
           <div class="panel-tools">
             <select id="appFilter">
               <option value="">전체 상태</option>
               <option value="new">신규</option>
-              <option value="contacted">연락완료</option>
+              <option value="reviewed">검토완료</option>
               <option value="enrolled">등록완료</option>
               <option value="archived">보관</option>
             </select>
             <button class="btn btn-ghost btn-sm" id="exportApps">CSV 내보내기</button>
           </div>
         </div>
-        <div class="table-wrap">
-          <table class="data-table" id="appsTable">
-            <thead>
-              <tr>
-                <th>신청일</th><th>자녀</th><th>나이/학년</th><th>수준</th>
-                <th>보호자</th><th>연락처</th><th>이메일</th><th>문의</th><th>상태</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="appsBody"><tr><td colspan="10" class="empty">불러오는 중…</td></tr></tbody>
-          </table>
-        </div>
+        <div id="appsList" class="card-list"><p class="empty">불러오는 중…</p></div>
       </section>
 
       <!-- 탭: 공지사항 -->
       <section class="panel" data-panel="notices">
-        <div class="panel-head">
-          <h1>공지사항</h1>
-          <button class="btn btn-primary btn-sm" id="newNotice">+ 새 공지</button>
-        </div>
+        <div class="panel-head"><h1>공지사항</h1><button class="btn btn-primary btn-sm" id="newNotice">+ 새 공지</button></div>
         <div id="noticesList" class="card-list"><p class="empty">불러오는 중…</p></div>
       </section>
 
       <!-- 탭: 갤러리 -->
       <section class="panel" data-panel="gallery">
-        <div class="panel-head">
-          <h1>갤러리</h1>
-          <button class="btn btn-primary btn-sm" id="newPhoto">+ 사진 추가</button>
-        </div>
+        <div class="panel-head"><h1>갤러리</h1><button class="btn btn-primary btn-sm" id="newPhoto">+ 사진 추가</button></div>
         <div id="galleryList" class="admin-gallery"><p class="empty">불러오는 중…</p></div>
       </section>
 
       <!-- 탭: 수업/프로그램 -->
       <section class="panel" data-panel="programs">
-        <div class="panel-head">
-          <h1>수업 / 프로그램</h1>
-          <button class="btn btn-primary btn-sm" id="newProgram">+ 새 프로그램</button>
-        </div>
+        <div class="panel-head"><h1>수업 / 프로그램</h1><button class="btn btn-primary btn-sm" id="newProgram">+ 새 프로그램</button></div>
         <div id="programsList" class="card-list"><p class="empty">불러오는 중…</p></div>
       </section>
 
     </main>
   </div>
 
-  <!-- ===== 모달 (공지/프로그램/사진 편집) ===== -->
+  <!-- 모달 -->
   <div class="modal-overlay" id="modalOverlay" hidden>
     <div class="modal" id="modal">
-      <div class="modal-head">
-        <h2 id="modalTitle">편집</h2>
-        <button class="modal-close" id="modalClose">✕</button>
-      </div>
+      <div class="modal-head"><h2 id="modalTitle">편집</h2><button class="modal-close" id="modalClose">✕</button></div>
       <div class="modal-body" id="modalBody"></div>
       <div class="modal-foot">
-        <button class="btn btn-ghost btn-sm" id="modalCancel">취소</button>
-        <button class="btn btn-primary btn-sm" id="modalSave">저장</button>
+        <button class="btn btn-ghost btn-sm" id="modalCancel">닫기</button>
+        <button class="btn btn-primary btn-sm" id="modalSave" hidden>저장</button>
       </div>
     </div>
   </div>

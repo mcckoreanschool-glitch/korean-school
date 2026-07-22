@@ -55,7 +55,7 @@
       </h1>
       <p class="hero-sub" data-ko="한국어와 한국 문화를 즐겁게 배우는 주말 한글학교입니다. 언어를 넘어, 정체성과 공동체를 함께 키웁니다." data-en="A weekend school where children joyfully learn the Korean language and culture — growing identity and community, not just words.">한국어와 한국 문화를 즐겁게 배우는 주말 한글학교입니다. 언어를 넘어, 정체성과 공동체를 함께 키웁니다.</p>
       <div class="hero-cta">
-        <a href="#admission" class="btn btn-primary" data-ko="입학 신청하기" data-en="Apply Now">입학 신청하기</a>
+        <a href="#admission" class="btn btn-primary" data-ko="신청서 요청하기" data-en="Request Application">신청서 요청하기</a>
         <a href="#programs" class="btn btn-ghost" data-ko="수업 둘러보기" data-en="Explore Programs">수업 둘러보기</a>
       </div>
       <div class="hero-stats">
@@ -150,57 +150,41 @@
     <div class="container admission-inner">
       <div class="admission-info">
         <p class="kicker" data-ko="입학 · 등록 신청" data-en="Admission">입학 · 등록 신청</p>
-        <h2 data-ko="지금 함께해요" data-en="Join us today">지금 함께해요</h2>
-        <p class="section-desc" data-ko="아래 신청서를 작성해 주시면 담당 선생님이 연락드립니다. 등록 문의는 언제든 환영합니다." data-en="Fill out the form below and our teacher will contact you. Questions are always welcome.">아래 신청서를 작성해 주시면 담당 선생님이 연락드립니다. 등록 문의는 언제든 환영합니다.</p>
+        <h2 data-ko="신청서를 요청하세요" data-en="Request an application">신청서를 요청하세요</h2>
+        <p class="section-desc" data-ko="아래 간단한 요청서를 남겨주시면, 담당 선생님이 이메일로 입학 신청서를 보내드립니다. 받으신 링크에서 신청서를 작성하시면 돼요." data-en="Leave a short request below and our teacher will email you the enrollment application. You'll fill it out through the link we send.">아래 간단한 요청서를 남겨주시면, 담당 선생님이 이메일로 입학 신청서를 보내드립니다. 받으신 링크에서 신청서를 작성하시면 돼요.</p>
 
         <ul class="steps">
-          <li><span>1</span><div><b data-ko="신청서 작성" data-en="Submit the form">신청서 작성</b><small data-ko="온라인으로 간편하게" data-en="Quick and online">온라인으로 간편하게</small></div></li>
-          <li><span>2</span><div><b data-ko="반 배정 상담" data-en="Placement chat">반 배정 상담</b><small data-ko="아이 수준에 맞는 반 안내" data-en="We find the right class">아이 수준에 맞는 반 안내</small></div></li>
-          <li><span>3</span><div><b data-ko="등록 완료" data-en="Enrollment done">등록 완료</b><small data-ko="첫 수업에서 만나요!" data-en="See you in class!">첫 수업에서 만나요!</small></div></li>
+          <li><span>1</span><div><b data-ko="신청서 요청" data-en="Request the form">신청서 요청</b><small data-ko="이름·이메일만 남기면 끝" data-en="Just your name & email">이름·이메일만 남기면 끝</small></div></li>
+          <li><span>2</span><div><b data-ko="이메일로 신청서 받기" data-en="Receive it by email">이메일로 신청서 받기</b><small data-ko="개인 작성 링크를 보내드려요" data-en="We send a private link">개인 작성 링크를 보내드려요</small></div></li>
+          <li><span>3</span><div><b data-ko="작성 후 제출" data-en="Fill out & submit">작성 후 제출</b><small data-ko="링크에서 온라인으로 작성" data-en="Complete it online">링크에서 온라인으로 작성</small></div></li>
         </ul>
       </div>
 
-      <!-- NOTE: action은 실제 접수 서비스(Formspree/Google Form 등)로 교체하세요 -->
-      <form class="admission-form card" id="admissionForm" novalidate>
+      <form class="admission-form card" id="requestForm" novalidate>
         <div class="field">
-          <label for="childName" data-ko="자녀 이름" data-en="Child's Name">자녀 이름</label>
-          <input type="text" id="childName" name="childName" required data-ph-ko="예) 김하늘" data-ph-en="e.g. Haneul Kim" />
+          <label for="reqName" data-ko="신청자 이름" data-en="Your Name">신청자 이름</label>
+          <input type="text" id="reqName" name="reqName" required data-ph-ko="예) 김보람" data-ph-en="e.g. Boram Kim" />
         </div>
         <div class="field-row">
           <div class="field">
-            <label for="age" data-ko="나이 / 학년" data-en="Age / Grade">나이 / 학년</label>
-            <input type="text" id="age" name="age" data-ph-ko="예) 만 7세 / 2학년" data-ph-en="e.g. Age 7 / Grade 2" />
+            <label for="reqEmail" data-ko="이메일" data-en="Email">이메일</label>
+            <input type="email" id="reqEmail" name="reqEmail" required data-ph-ko="신청서를 받을 이메일" data-ph-en="Where we send the form" />
           </div>
           <div class="field">
-            <label for="level" data-ko="한국어 수준" data-en="Korean Level">한국어 수준</label>
-            <select id="level" name="level">
-              <option value="" data-ko="선택하세요" data-en="Please select">선택하세요</option>
-              <option data-ko="처음이에요" data-en="Beginner">처음이에요</option>
-              <option data-ko="조금 할 수 있어요" data-en="Some Korean">조금 할 수 있어요</option>
-              <option data-ko="집에서 사용해요" data-en="Used at home">집에서 사용해요</option>
-            </select>
+            <label for="reqPhone" data-ko="연락처" data-en="Phone">연락처</label>
+            <input type="tel" id="reqPhone" name="reqPhone" />
           </div>
         </div>
         <div class="field">
-          <label for="parentName" data-ko="보호자 이름" data-en="Parent / Guardian">보호자 이름</label>
-          <input type="text" id="parentName" name="parentName" required />
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="phone" data-ko="연락처" data-en="Phone">연락처</label>
-            <input type="tel" id="phone" name="phone" required />
-          </div>
-          <div class="field">
-            <label for="email" data-ko="이메일" data-en="Email">이메일</label>
-            <input type="email" id="email" name="email" />
-          </div>
+          <label for="reqChildren" data-ko="신청 자녀 수 (선택)" data-en="Number of children (optional)">신청 자녀 수 (선택)</label>
+          <input type="text" id="reqChildren" name="reqChildren" data-ph-ko="예) 2명" data-ph-en="e.g. 2" />
         </div>
         <div class="field">
-          <label for="message" data-ko="문의 사항 (선택)" data-en="Message (optional)">문의 사항 (선택)</label>
-          <textarea id="message" name="message" rows="3"></textarea>
+          <label for="reqMessage" data-ko="문의 사항 (선택)" data-en="Message (optional)">문의 사항 (선택)</label>
+          <textarea id="reqMessage" name="reqMessage" rows="3"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary btn-block" data-ko="신청서 보내기" data-en="Send Application">신청서 보내기</button>
-        <p class="form-note" id="formNote" data-ko="* 개인정보는 반 배정과 연락 목적으로만 사용됩니다." data-en="* Your information is used only for placement and contact.">* 개인정보는 반 배정과 연락 목적으로만 사용됩니다.</p>
+        <button type="submit" class="btn btn-primary btn-block" data-ko="신청서 요청하기" data-en="Request Application">신청서 요청하기</button>
+        <p class="form-note" id="formNote" data-ko="* 남겨주신 정보는 신청서 발송·연락 목적으로만 사용됩니다." data-en="* Your info is used only to send the form and contact you.">* 남겨주신 정보는 신청서 발송·연락 목적으로만 사용됩니다.</p>
       </form>
     </div>
   </section>

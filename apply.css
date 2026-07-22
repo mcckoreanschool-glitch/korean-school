@@ -1,0 +1,59 @@
+/* ===== 상세 신청서 페이지 (butter yellow) ===== */
+[hidden] { display: none !important; }
+.apply-body { background: var(--bg-alt); min-height: 100vh; padding-bottom: 60px; }
+
+.apply-header { background: #fff; border-bottom: 1px solid var(--line); padding: 16px 0; position: sticky; top: 0; z-index: 10; }
+.apply-head-inner { display: flex; align-items: center; gap: 12px; }
+.apply-header strong { display: block; font-size: 16px; }
+.apply-header small { color: var(--muted); font-size: 12.5px; }
+
+.apply-main { max-width: 720px; margin: 0 auto; padding-top: 34px; }
+
+/* 상태 화면 */
+.apply-state { text-align: center; padding: 70px 20px; max-width: 480px; margin: 0 auto; }
+.apply-state h1 { font-size: 24px; margin-bottom: 10px; }
+.apply-state p { color: var(--body); margin-bottom: 6px; }
+.apply-state .muted { color: var(--muted); font-size: 14px; margin: 12px 0 22px; }
+.state-icon { font-size: 46px; margin-bottom: 14px; }
+.spinner { width: 38px; height: 38px; border: 3px solid var(--butter-200); border-top-color: var(--gold-600); border-radius: 50%; margin: 0 auto 18px; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 폼 */
+.apply-form { display: grid; gap: 18px; }
+.apply-intro h1 { font-size: 26px; letter-spacing: -.5px; }
+.apply-intro h1 .sub { font-size: 15px; color: var(--muted); font-weight: 500; display: block; margin-top: 2px; }
+.greeting { color: var(--gold-700); font-weight: 600; margin: 10px 0 6px; }
+.muted { color: var(--muted); font-size: 13.5px; }
+.req-star { color: #c0392b; font-weight: 700; }
+
+.apply-section { border: 1px solid var(--line); padding: 24px; }
+.apply-section legend { font-size: 17px; font-weight: 700; color: var(--ink); padding: 0 8px; }
+.apply-section legend .sub { font-size: 13px; color: var(--muted); font-weight: 500; }
+.apply-section .field { margin-top: 14px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-2 .field { margin-top: 14px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 14px; font-weight: 600; color: var(--ink); }
+.field label small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.field input, .field select, .field textarea {
+  font-family: var(--kr); font-size: 15px; color: var(--ink);
+  padding: 11px 13px; border: 1px solid var(--line); border-radius: 11px; background: #fdfbf3; width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--butter-400); box-shadow: 0 0 0 3px var(--butter-100); background: #fff;
+}
+.field textarea { resize: vertical; }
+
+.consent-row { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 14px; color: var(--body); line-height: 1.6; cursor: pointer; }
+.consent-row input { margin-top: 3px; flex: none; width: 17px; height: 17px; }
+
+.apply-submit { margin-top: 6px; }
+.form-note { font-size: 13px; text-align: center; margin-top: 12px; min-height: 18px; }
+.form-note.error { color: #c0392b; font-weight: 600; }
+.form-note.success { color: var(--gold-700); font-weight: 600; }
+
+@media (max-width: 620px) {
+  .grid-2 { grid-template-columns: 1fr; gap: 0; }
+}

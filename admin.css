@@ -4,6 +4,21 @@
 .admin-body { background: var(--bg-alt); min-height: 100vh; }
 
 .btn-sm { padding: 9px 16px; font-size: 14px; }
+.btn-xs { padding: 7px 12px; font-size: 13px; border-radius: 999px; }
+.panel-hint { font-size: 13.5px; color: var(--muted); margin: -8px 0 18px; }
+.nowrap { white-space: nowrap; }
+.muted { color: var(--muted); font-weight: 400; }
+
+/* 상태 pill (텍스트 표시용) */
+.status-pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+
+/* 신청서 상세 (읽기 전용) */
+.detail-dl { display: grid; gap: 0; }
+.dl-sec { font-size: 14px; color: var(--gold-700); margin: 16px 0 6px; padding-bottom: 5px; border-bottom: 1px solid var(--line); }
+.dl-sec:first-child { margin-top: 0; }
+.dl-row { display: grid; grid-template-columns: 130px 1fr; gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.dl-row dt { color: var(--muted); }
+.dl-row dd { color: var(--ink); word-break: break-word; }
 
 .config-warn {
   background: #fff4d6; color: #8a5a00; border-bottom: 1px solid #f0d98a;

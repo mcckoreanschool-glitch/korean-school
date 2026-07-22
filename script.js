@@ -126,8 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     observeReveals(grid.querySelectorAll('.g-item'));
   }
 
-  /* ---- 6. 입학 신청 폼 ---- */
-  const form = document.getElementById('admissionForm');
+  /* ---- 6. 신청서 요청 폼 ---- */
+  const form = document.getElementById('requestForm');
   const note = document.getElementById('formNote');
 
   form.addEventListener('submit', async (e) => {
@@ -141,25 +141,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!ok) {
       note.className = 'form-note error';
       note.textContent = currentLang === 'ko'
-        ? '* 필수 항목을 모두 입력해 주세요.'
-        : '* Please fill in all required fields.';
+        ? '* 이름과 이메일을 입력해 주세요.'
+        : '* Please enter your name and email.';
       return;
     }
 
     const payload = {
-      child_name:   form.childName.value.trim(),
-      age_grade:    form.age.value.trim(),
-      korean_level: form.level.value,
-      parent_name:  form.parentName.value.trim(),
-      phone:        form.phone.value.trim(),
-      email:        form.email.value.trim(),
-      message:      form.message.value.trim(),
+      requester_name: form.reqName.value.trim(),
+      email:          form.reqEmail.value.trim(),
+      phone:          form.reqPhone.value.trim(),
+      num_children:   form.reqChildren.value.trim(),
+      message:        form.reqMessage.value.trim(),
     };
 
     if (sb) {
       const btn = form.querySelector('button[type="submit"]');
       btn.disabled = true;
-      const { error } = await sb.from('applications').insert(payload);
+      const { error } = await sb.from('form_requests').insert(payload);
       btn.disabled = false;
       if (error) {
         note.className = 'form-note error';
@@ -170,14 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       note.className = 'form-note success';
       note.textContent = currentLang === 'ko'
-        ? '✓ 신청이 접수되었습니다! 담당 선생님이 곧 연락드리겠습니다.'
-        : '✓ Application received! Our teacher will contact you soon.';
+        ? '✓ 요청이 접수되었습니다! 담당 선생님이 이메일로 신청서를 보내드릴게요.'
+        : '✓ Request received! Our teacher will email you the application form.';
       form.reset();
     } else {
-      // Supabase 미설정 시 데모 동작
       note.className = 'form-note success';
       note.textContent = currentLang === 'ko'
-        ? '✓ (데모) 신청 폼 동작 확인 — Supabase 연결 시 실제 저장됩니다.'
+        ? '✓ (데모) 요청 폼 동작 확인 — Supabase 연결 시 실제 저장됩니다.'
         : '✓ (Demo) Form works — connect Supabase to save for real.';
       form.reset();
     }

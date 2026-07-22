@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>입학 신청서 · 늘 푸른 한글학교 | Enrollment Application</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="apply.css" />
+</head>
+<body class="apply-body">
+
+  <header class="apply-header">
+    <div class="container apply-head-inner">
+      <span class="brand-mark">늘푸른</span>
+      <div>
+        <strong>늘 푸른 한글학교</strong>
+        <small>입학 신청서 · Enrollment Application</small>
+      </div>
+    </div>
+  </header>
+
+  <main class="container apply-main">
+
+    <!-- 상태: 확인 중 -->
+    <div id="loadingView" class="apply-state">
+      <div class="spinner"></div>
+      <p>신청서를 불러오는 중입니다… / Loading…</p>
+    </div>
+
+    <!-- 상태: 잘못된/만료된 링크 -->
+    <div id="invalidView" class="apply-state" hidden>
+      <div class="state-icon">🔒</div>
+      <h1>유효하지 않은 링크예요</h1>
+      <p>This application link is invalid, expired, or already used.</p>
+      <p class="muted">이 신청서 링크는 유효하지 않거나 이미 제출되었습니다. 담당 선생님께 문의하시거나, 홈페이지에서 다시 요청해 주세요.</p>
+      <a href="index.html" class="btn btn-primary">홈페이지로 / Go to homepage</a>
+    </div>
+
+    <!-- 상태: 제출 완료 -->
+    <div id="doneView" class="apply-state" hidden>
+      <div class="state-icon">🎉</div>
+      <h1>신청서가 제출되었습니다!</h1>
+      <p>Your application has been submitted. Thank you!</p>
+      <p class="muted">담당 선생님이 확인 후 연락드리겠습니다. / Our teacher will be in touch soon.</p>
+      <a href="index.html" class="btn btn-primary">홈페이지로 / Go to homepage</a>
+    </div>
+
+    <!-- 상태: 신청서 폼 -->
+    <form id="applyForm" class="apply-form" hidden novalidate>
+      <div class="apply-intro card">
+        <h1>입학 신청서 <span class="sub">Enrollment Application</span></h1>
+        <p id="greeting" class="greeting"></p>
+        <p class="muted">모든 항목을 정확히 작성해 주세요. (<span class="req-star">*</span> 필수) / Please complete all required (<span class="req-star">*</span>) fields.</p>
+      </div>
+
+      <!-- 1. 학생 정보 -->
+      <fieldset class="apply-section card">
+        <legend>① 학생 정보 <span class="sub">Student Information</span></legend>
+        <div class="grid-2">
+          <div class="field"><label>자녀 이름 (한글) <span class="req-star">*</span><small>Student Name (Korean)</small></label><input name="student_name_ko" required /></div>
+          <div class="field"><label>자녀 이름 (영문)<small>Student Name (English)</small></label><input name="student_name_en" /></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>생년월일 <span class="req-star">*</span><small>Date of Birth</small></label><input type="date" name="birthdate" required /></div>
+          <div class="field"><label>성별<small>Gender</small></label>
+            <select name="gender">
+              <option value="">선택 / Select</option>
+              <option>남 / Male</option>
+              <option>여 / Female</option>
+              <option>기타 / Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>현재 학년<small>Current Grade</small></label><input name="current_grade" placeholder="예) 2학년 / Grade 2" /></div>
+          <div class="field"><label>다니는 학교<small>Current School</small></label><input name="current_school" /></div>
+        </div>
+        <div class="field"><label>한국어 수준<small>Korean Level</small></label>
+          <select name="korean_level">
+            <option value="">선택 / Select</option>
+            <option>처음이에요 / Beginner</option>
+            <option>조금 할 수 있어요 / Some Korean</option>
+            <option>집에서 사용해요 / Used at home</option>
+          </select>
+        </div>
+        <div class="field"><label>알레르기 · 특이사항<small>Allergies / Special notes</small></label><textarea name="allergies" rows="2"></textarea></div>
+      </fieldset>
+
+      <!-- 2. 보호자 정보 -->
+      <fieldset class="apply-section card">
+        <legend>② 보호자 정보 <span class="sub">Parent / Guardian</span></legend>
+        <div class="grid-2">
+          <div class="field"><label>보호자 이름 <span class="req-star">*</span><small>Guardian Name</small></label><input name="guardian_name" required /></div>
+          <div class="field"><label>학생과의 관계<small>Relationship</small></label><input name="guardian_relation" placeholder="예) 어머니 / Mother" /></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>휴대폰 <span class="req-star">*</span><small>Phone</small></label><input type="tel" name="guardian_phone" required /></div>
+          <div class="field"><label>이메일 <span class="req-star">*</span><small>Email</small></label><input type="email" name="guardian_email" required /></div>
+        </div>
+        <div class="field"><label>집 주소<small>Home Address</small></label><input name="home_address" /></div>
+        <div class="grid-2">
+          <div class="field"><label>비상 연락처 이름<small>Emergency Contact</small></label><input name="emergency_name" /></div>
+          <div class="field"><label>비상 연락처 전화<small>Emergency Phone</small></label><input type="tel" name="emergency_phone" /></div>
+        </div>
+      </fieldset>
+
+      <!-- 3. 교회 / 신앙 -->
+      <fieldset class="apply-section card">
+        <legend>③ 교회 / 신앙 <span class="sub">Church</span></legend>
+        <div class="grid-2">
+          <div class="field"><label>출석 교회<small>Church you attend</small></label><input name="church_name" /></div>
+          <div class="field"><label>늘 푸른 선교 교회 교인이신가요?<small>Member of Neul Pureun Mission Church?</small></label>
+            <select name="is_member">
+              <option value="">선택 / Select</option>
+              <option>예 / Yes</option>
+              <option>아니요 / No</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- 4. 동의 -->
+      <fieldset class="apply-section card">
+        <legend>④ 동의 <span class="sub">Consent</span></legend>
+        <label class="consent-row"><input type="checkbox" name="consent_photo" /><span>사진·영상 활용에 동의합니다 (홈페이지·홍보용). / I consent to the use of photos/videos for the school website and promotion.</span></label>
+        <label class="consent-row"><input type="checkbox" name="consent_privacy" required /><span>개인정보 수집·이용에 동의합니다. <span class="req-star">*</span> / I consent to the collection and use of personal information. <span class="req-star">*</span></span></label>
+      </fieldset>
+
+      <!-- 5. 기타 -->
+      <fieldset class="apply-section card">
+        <legend>⑤ 기타 문의사항 <span class="sub">Other notes</span></legend>
+        <div class="field"><textarea name="message" rows="3"></textarea></div>
+      </fieldset>
+
+      <div class="apply-submit">
+        <button type="submit" class="btn btn-primary btn-block" id="applyBtn">신청서 제출하기 / Submit Application</button>
+        <p class="form-note" id="applyNote"></p>
+      </div>
+    </form>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="apply.js"></script>
+</body>
+</html>
