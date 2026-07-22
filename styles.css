@@ -1,27 +1,38 @@
-/* ===== Design Tokens (Butter Yellow) ===== */
+/* ===== Design Tokens (Pastel Multicolor) ===== */
 :root {
-  /* Butter yellow scale */
-  --butter-50:  #fffdf4;
-  --butter-100: #fcf3d1;   /* soft fill / chips */
-  --butter-200: #f9e9ad;
-  --butter-300: #f6de85;
-  --butter-400: #f2ce54;   /* butter — main accent / buttons */
-  --butter-500: #ecc134;   /* deeper butter — hover */
-  --gold-600:   #b8890f;   /* deep gold */
-  --gold-700:   #8a6a0c;   /* deep gold — accent text on white (readable) */
-  /* Warm neutrals / dark surfaces */
-  --brown-800:  #40371b;
-  --brown-900:  #292414;
-  --ink:        #221e13;
-  --body:       #55503f;
-  --muted:      #8a8471;
-  --line:       #ece7d8;
+  /* Pastel yellow — 기본 브랜드색 (토큰 이름은 호환 위해 유지) */
+  --butter-50:  #fffdf3;
+  --butter-100: #fdf3cf;   /* soft yellow fill / chips */
+  --butter-200: #fbe9a8;
+  --butter-300: #f8dd80;
+  --butter-400: #f7d968;   /* main pastel yellow — buttons */
+  --butter-500: #f2cd4c;   /* hover */
+  --gold-600:   #b78d1a;   /* deep accent */
+  --gold-700:   #8f6c10;   /* accent text on white (readable) */
+  /* Pastel accents */
+  --pink-100:   #fce3ee;
+  --pink-200:   #f8cde0;
+  --pink-ink:   #b83e73;
+  --purple-100: #ece3fb;
+  --purple-200: #dccbf6;
+  --purple-ink: #7350c0;
+  --green-100:  #ddf3e5;
+  --green-200:  #c4ebd2;
+  --green-ink:  #2f9061;
+  /* Dark surfaces → 부드러운 딥 플럼 (파스텔과 어울림) */
+  --brown-800:  #4a4066;
+  --brown-900:  #362d4f;
+  /* Neutrals (살짝 쿨한 소프트 톤) */
+  --ink:        #2c2838;
+  --body:       #575163;
+  --muted:      #918ba0;
+  --line:       #ece8f1;
   --bg:         #ffffff;
-  --bg-alt:     #fdfbf3;
+  --bg-alt:     #fbf7fd;
   --white:      #ffffff;
-  --btn-text:   #33290a;   /* dark text for yellow buttons */
-  --shadow-sm:  0 1px 2px rgba(60,48,16,.05), 0 4px 12px rgba(60,48,16,.06);
-  --shadow-md:  0 10px 30px rgba(60,48,16,.10);
+  --btn-text:   #5a4600;   /* dark text for pastel yellow buttons */
+  --shadow-sm:  0 1px 2px rgba(80,60,110,.05), 0 4px 12px rgba(80,60,110,.07);
+  --shadow-md:  0 10px 30px rgba(80,60,110,.12);
   --radius:     18px;
   --radius-sm:  12px;
   --sans:       'Poppins', 'Noto Sans KR', system-ui, sans-serif;
@@ -372,3 +383,48 @@ img { max-width: 100%; display: block; }
 /* 수업/프로그램 카드의 대표 사진 (카드 상단에 꽉 차게) */
 .program-photo { margin: -30px -30px 18px; overflow: hidden; border-radius: var(--radius) var(--radius) 0 0; }
 .program-photo img { width: 100%; height: 150px; object-fit: cover; display: block; }
+
+/* ===================== PASTEL MULTICOLOR ACCENTS ===================== */
+/* 학교 소개 값 카드 — 파스텔 3색 */
+.about-values .value:nth-child(1) { background: var(--butter-100); }
+.about-values .value:nth-child(1) .value-icon { background: var(--butter-200); color: var(--gold-700); }
+.about-values .value:nth-child(2) { background: var(--pink-100); }
+.about-values .value:nth-child(2) .value-icon { background: var(--pink-200); color: var(--pink-ink); }
+.about-values .value:nth-child(3) { background: var(--purple-100); }
+.about-values .value:nth-child(3) .value-icon { background: var(--purple-200); color: var(--purple-ink); }
+
+/* 수업 프로그램 태그 — 파스텔 4색 로테이션 */
+.program-grid .program:nth-child(4n+1) .program-tag { background: var(--butter-100); color: var(--gold-700); }
+.program-grid .program:nth-child(4n+2) .program-tag { background: var(--pink-100);   color: var(--pink-ink); }
+.program-grid .program:nth-child(4n+3) .program-tag { background: var(--purple-100); color: var(--purple-ink); }
+.program-grid .program:nth-child(4n+4) .program-tag { background: var(--green-100);  color: var(--green-ink); }
+
+/* 공지 뱃지 — 파스텔 로테이션 */
+.news-list .news-item:nth-child(3n+1) .news-badge { background: var(--butter-100); color: var(--gold-700); }
+.news-list .news-item:nth-child(3n+2) .news-badge { background: var(--pink-100);   color: var(--pink-ink); }
+.news-list .news-item:nth-child(3n+3) .news-badge { background: var(--purple-100); color: var(--purple-ink); }
+
+/* 히어로 — 멀티 파스텔 배경 */
+.hero {
+  background:
+    radial-gradient(900px 460px at 82% -8%, var(--butter-100), transparent 60%),
+    radial-gradient(760px 420px at 4% 6%, var(--pink-100), transparent 58%),
+    radial-gradient(720px 520px at 55% 42%, var(--purple-100), transparent 62%),
+    var(--bg);
+}
+
+/* 갤러리 플레이스홀더 타일 — 파스텔 그라데이션 + 진한 글씨 */
+.g-item { color: var(--ink); }
+.g-item.g-photo { color: #fff; }        /* 실제 사진 타일은 흰 글씨 유지 */
+.g-1 { background: linear-gradient(150deg, var(--butter-200), var(--butter-300)); }
+.g-2 { background: linear-gradient(150deg, var(--pink-100),   var(--pink-200)); }
+.g-3 { background: linear-gradient(150deg, var(--purple-100), var(--purple-200)); }
+.g-4 { background: linear-gradient(150deg, var(--green-100),  var(--green-200)); }
+.g-5 { background: linear-gradient(150deg, var(--pink-200),   var(--purple-200)); }
+.g-6 { background: linear-gradient(150deg, var(--butter-200), var(--green-200)); }
+
+/* 푸터 — 딥 플럼 배경에 맞춘 쿨 톤 텍스트 */
+.footer { color: #d9d3ea; }
+.footer-brand small { color: #b3abc8; }
+.footer-links a { color: #e3ddf0; }
+.footer-copy { color: #9990b5; }
