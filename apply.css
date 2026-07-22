@@ -30,6 +30,12 @@
 .apply-section legend { font-size: 17px; font-weight: 700; color: var(--ink); padding: 0 8px; }
 .apply-section legend .sub { font-size: 13px; color: var(--muted); font-weight: 500; }
 .apply-section .field { margin-top: 14px; }
+
+/* 자녀별 학생 블록 */
+.student-block { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px 18px 18px; margin-top: 16px; background: var(--butter-50); }
+.student-block:first-child { margin-top: 10px; }
+.student-block-head { font-weight: 700; color: var(--gold-700); font-size: 15px; margin-bottom: 2px; }
+.student-block-head .sub { font-weight: 400; color: var(--muted); font-size: 12.5px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .grid-2 .field { margin-top: 14px; }
 

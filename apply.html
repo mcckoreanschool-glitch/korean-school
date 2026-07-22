@@ -57,37 +57,19 @@
         <p class="muted">모든 항목을 정확히 작성해 주세요. (<span class="req-star">*</span> 필수) / Please complete all required (<span class="req-star">*</span>) fields.</p>
       </div>
 
-      <!-- 1. 학생 정보 -->
+      <!-- 1. 학생 정보 (자녀 수만큼 동적 생성) -->
       <fieldset class="apply-section card">
         <legend>① 학생 정보 <span class="sub">Student Information</span></legend>
-        <div class="grid-2">
-          <div class="field"><label>자녀 이름 (한글) <span class="req-star">*</span><small>Student Name (Korean)</small></label><input name="student_name_ko" required /></div>
-          <div class="field"><label>자녀 이름 (영문)<small>Student Name (English)</small></label><input name="student_name_en" /></div>
-        </div>
-        <div class="grid-2">
-          <div class="field"><label>생년월일 <span class="req-star">*</span><small>Date of Birth</small></label><input type="date" name="birthdate" required /></div>
-          <div class="field"><label>성별<small>Gender</small></label>
-            <select name="gender">
-              <option value="">선택 / Select</option>
-              <option>남 / Male</option>
-              <option>여 / Female</option>
-              <option>기타 / Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="field"><label>현재 학년<small>Current Grade</small></label><input name="current_grade" placeholder="예) 2학년 / Grade 2" /></div>
-          <div class="field"><label>다니는 학교<small>Current School</small></label><input name="current_school" /></div>
-        </div>
-        <div class="field"><label>한국어 수준<small>Korean Level</small></label>
-          <select name="korean_level">
-            <option value="">선택 / Select</option>
-            <option>처음이에요 / Beginner</option>
-            <option>조금 할 수 있어요 / Some Korean</option>
-            <option>집에서 사용해요 / Used at home</option>
+        <div class="field">
+          <label>신청 자녀 수 <span class="req-star">*</span><small>Number of children enrolling</small></label>
+          <select id="childCount">
+            <option value="1">자녀 1명 / 1 child</option>
+            <option value="2">자녀 2명 / 2 children</option>
+            <option value="3">자녀 3명 / 3 children</option>
+            <option value="4">자녀 4명 / 4 children</option>
           </select>
         </div>
-        <div class="field"><label>알레르기 · 특이사항<small>Allergies / Special notes</small></label><textarea name="allergies" rows="2"></textarea></div>
+        <div id="studentBlocks"></div>
       </fieldset>
 
       <!-- 2. 보호자 정보 -->
