@@ -141,10 +141,15 @@
         body: JSON.stringify({ email: r.email, name: r.requester_name, applyToken: r.token }),
       });
       const j = await resp.json().catch(() => ({}));
-      if (!resp.ok) toast("메일 발송 실패: " + (j.error || resp.status) + " (상태는 '발송됨'으로 표시됨)", true);
-      else toast("✓ 신청서를 이메일로 보냈어요!");
+      if (!resp.ok) {
+        const detail = j.detail ? (typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail)) : "";
+        console.error("send-application failed:", resp.status, j);
+        alert("메일 발송 실패 (HTTP " + resp.status + ")\n\n" + (j.error || "") + "\n" + detail);
+        toast("메일 발송 실패 — 자세한 내용은 팝업 참고", true);
+      } else toast("✓ 신청서를 이메일로 보냈어요!");
     } catch (e) {
-      toast("메일 발송 오류 (로컬에서는 발송 안 됨). 실제 도메인에서 동작해요.", true);
+      alert("메일 발송 오류: " + e.message);
+      toast("메일 발송 오류", true);
     }
     loadRequests();
   }
