@@ -451,3 +451,8 @@ img { max-width: 100%; display: block; }
 .footer-brand small { color: #b3abc8; }
 .footer-links a { color: #e3ddf0; }
 .footer-copy { color: #9990b5; }
+
+/* 스크롤 패럴랙스 */
+.hero.px-on .hero-slides { inset: -42% 0 0 0; }   /* 배경이 아래로 밀려도 위가 비지 않게 위로 확장 */
+.hero.px-on .hero-slides, .hero.px-on .hero-inner { will-change: transform; }
+.px-img { will-change: transform; }

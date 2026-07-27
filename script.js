@@ -68,6 +68,52 @@ document.addEventListener('DOMContentLoaded', () => {
     '.section-head, .about-message, .about-values .value, .program, .schedule, .admission-form, .steps, .news-item, .g-item, .location-info, .location-map'
   ));
 
+  /* ---- 4.5 스크롤 패럴랙스 (스크롤에 따라 계속 움직임) ---- */
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!prefersReduced) {
+    const hero = document.getElementById('hero');
+    const heroSlides = document.getElementById('heroSlides');
+    const heroInner = hero ? hero.querySelector('.hero-inner') : null;
+    if (hero) hero.classList.add('px-on');
+
+    // 사진들: 컨테이너 안에서 스크롤에 따라 위아래로 은은하게 흐름
+    let pxEls = [];
+    const refreshPx = () => {
+      pxEls = Array.from(document.querySelectorAll('.about-photo img, .program-photo img, .g-item .g-img'));
+      pxEls.forEach(el => el.classList.add('px-img'));
+    };
+    refreshPx();
+    setTimeout(refreshPx, 1500);   // 동적 콘텐츠(수업·갤러리) 로딩 후 다시 수집
+    setTimeout(refreshPx, 4000);
+
+    let pxTick = false;
+    const onScrollPx = () => {
+      if (pxTick) return;
+      pxTick = true;
+      requestAnimationFrame(() => {
+        const sy = window.scrollY, vh = window.innerHeight;
+        // 히어로: 배경은 천천히 따라오고, 문구는 살짝 밀리며 서서히 사라짐
+        if (heroSlides && sy < vh * 1.2) {
+          heroSlides.style.transform = `translateY(${(sy * 0.35).toFixed(1)}px)`;
+          if (heroInner) {
+            heroInner.style.transform = `translateY(${(sy * 0.16).toFixed(1)}px)`;
+            heroInner.style.opacity = Math.max(0, 1 - sy / (vh * 0.9)).toFixed(3);
+          }
+        }
+        // 본문 사진: 화면 중앙 기준 위치에 따라 -26px ~ +26px 이동
+        pxEls.forEach(el => {
+          const box = el.parentElement.getBoundingClientRect();
+          if (box.bottom < 0 || box.top > vh) return;
+          const progress = (box.top + box.height / 2 - vh / 2) / vh;
+          el.style.transform = `translateY(${(-progress * 26).toFixed(1)}px) scale(1.12)`;
+        });
+        pxTick = false;
+      });
+    };
+    window.addEventListener('scroll', onScrollPx, { passive: true });
+    onScrollPx();
+  }
+
   /* ============================================================
      5. Supabase 연동 (설정된 경우에만 동적 로딩 / 실제 저장)
      ============================================================ */
