@@ -120,12 +120,17 @@
         <div class="panel-head">
           <h1>출석 체크</h1>
           <div class="panel-tools">
+            <div class="att-mode-toggle">
+              <button type="button" class="att-mode on" id="attModeCheck">✏️ 출석 체크</button>
+              <button type="button" class="att-mode" id="attModeSheet">📊 출석부</button>
+            </div>
             <input type="date" id="attDate">
+            <input type="month" id="attMonth" hidden>
             <select id="attClass"></select>
             <button class="btn btn-ghost btn-sm" id="attAllPresent">미체크 모두 출석</button>
           </div>
         </div>
-        <p class="panel-hint">날짜와 반을 고르고 학생별로 상태를 누르세요. <b>즉시 저장</b>되며, 같은 버튼을 다시 누르면 체크가 해제됩니다. 다른 날짜를 고르면 지난 출석 기록도 확인·수정할 수 있어요.</p>
+        <p class="panel-hint">✏️ <b>출석 체크</b>: 날짜와 반을 고르고 학생별로 상태를 누르세요 (즉시 저장, 같은 버튼 다시 누르면 해제). &nbsp;📊 <b>출석부</b>: 월을 고르면 누가 언제 출석·결석했는지 표로 한눈에 확인할 수 있어요.</p>
         <div id="attSummary" class="att-summary"></div>
         <div id="attList" class="card-list"><p class="empty">불러오는 중…</p></div>
       </section>

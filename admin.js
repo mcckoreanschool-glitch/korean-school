@@ -669,9 +669,12 @@
   }
 
   let attClasses = [];
+  let attMode = "check";   // check(출석 체크) | sheet(출석부)
 
   async function initAttendance() {
     $("#attDate").value = lastSundayYMD();
+    const now = new Date();
+    $("#attMonth").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const { data } = await sb.from("programs").select("id, name_ko, sort_order").order("sort_order", { ascending: true });
     attClasses = data || [];
     $("#attClass").innerHTML =
@@ -680,6 +683,18 @@
       `<option value="__none">미배정</option>`;
     loadAttendance();
   }
+
+  function setAttMode(m) {
+    attMode = m;
+    $("#attModeCheck").classList.toggle("on", m === "check");
+    $("#attModeSheet").classList.toggle("on", m === "sheet");
+    $("#attDate").hidden = m !== "check";
+    $("#attAllPresent").hidden = m !== "check";
+    $("#attMonth").hidden = m !== "sheet";
+    if (m === "check") loadAttendance(); else loadAttSheet();
+  }
+  $("#attModeCheck").addEventListener("click", () => setAttMode("check"));
+  $("#attModeSheet").addEventListener("click", () => setAttMode("sheet"));
 
   async function loadAttendance() {
     const date = $("#attDate").value;
@@ -777,8 +792,81 @@
     renderAttendance();
   }
 
+  // ── 출석부(월별 표) 보기 ──
+  async function loadAttSheet() {
+    const month = $("#attMonth").value;   // 예: "2026-07"
+    const cls = $("#attClass").value;
+    const box = $("#attList");
+    $("#attSummary").innerHTML = "";
+    if (!month) { box.innerHTML = `<p class="empty">월을 선택하세요.</p>`; return; }
+    const [y, m] = month.split("-").map(Number);
+    const from = `${month}-01`;
+    const to = `${month}-${String(new Date(y, m, 0).getDate()).padStart(2, "0")}`;
+
+    let q = sb.from("applications").select("*").eq("status", "enrolled");
+    if (cls === "__none") q = q.is("class_id", null);
+    else if (cls !== "__all") q = q.eq("class_id", cls);
+    const [stuRes, attRes] = await Promise.all([
+      q.order("student_name_ko", { ascending: true }),
+      sb.from("attendance").select("*").gte("class_date", from).lte("class_date", to),
+    ]);
+    if (stuRes.error || attRes.error) {
+      box.innerHTML = `<p class="empty">불러오기 실패: ${esc((stuRes.error || attRes.error).message)}</p>`;
+      return;
+    }
+    const students = stuRes.data || [];
+    const recs = attRes.data || [];
+    if (!students.length) { box.innerHTML = `<p class="empty">이 반에 배정된 학생이 없습니다.</p>`; return; }
+
+    // 이 달에 출석 기록이 있는 날짜만 열로 표시
+    const dates = [...new Set(recs.map((r) => r.class_date))].sort();
+    if (!dates.length) { box.innerHTML = `<p class="empty">${y}년 ${m}월에는 출석 기록이 없습니다.</p>`; return; }
+    const recMap = {};
+    recs.forEach((r) => { recMap[r.student_id + "|" + r.class_date] = r.status; });
+
+    const MARK = { present: ["○", "p"], late: ["△", "l"], absent: ["✕", "a"] };
+    const sheetTable = (list) => `
+      <div class="att-sheet-wrap"><table class="att-sheet">
+        <thead><tr>
+          <th class="att-sticky">학생</th>
+          ${dates.map((d) => `<th>${+d.slice(5, 7)}/${+d.slice(8, 10)}</th>`).join("")}
+          <th class="att-sum-h">요약</th>
+        </tr></thead>
+        <tbody>${list.map((s) => {
+          let p = 0, l = 0, a = 0;
+          const cells = dates.map((d) => {
+            const st = recMap[s.id + "|" + d];
+            if (st === "present") p++; else if (st === "late") l++; else if (st === "absent") a++;
+            const mk = MARK[st];
+            return `<td class="${mk ? "att-c-" + mk[1] : "att-c-none"}">${mk ? mk[0] : "·"}</td>`;
+          }).join("");
+          return `<tr>
+            <td class="att-sticky att-name">${esc(s.student_name_ko || s.child_name || "(이름 없음)")}</td>
+            ${cells}
+            <td class="att-sum">○${p} △${l} ✕${a}</td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table></div>`;
+
+    const legend = `<p class="att-legend">○ 출석 &nbsp; △ 지각 &nbsp; ✕ 결석 &nbsp; · 기록 없음 — 칸을 수정하려면 ✏️ 출석 체크에서 해당 날짜를 선택하세요.</p>`;
+    if (cls === "__all") {
+      const groups = [
+        ...attClasses.map((c) => ({ name: c.name_ko, list: students.filter((s) => s.class_id === c.id) })),
+        { name: "🗂 미배정", list: students.filter((s) => !s.class_id) },
+      ].filter((g) => g.list.length);
+      box.innerHTML = legend + groups.map((g) => `
+        <div class="att-group">
+          <div class="att-group-head"><h2>${esc(g.name)}</h2></div>
+          ${sheetTable(g.list)}
+        </div>`).join("");
+    } else {
+      box.innerHTML = legend + sheetTable(students);
+    }
+  }
+
   $("#attDate").addEventListener("change", loadAttendance);
-  $("#attClass").addEventListener("change", loadAttendance);
+  $("#attMonth").addEventListener("change", loadAttSheet);
+  $("#attClass").addEventListener("change", () => (attMode === "check" ? loadAttendance() : loadAttSheet()));
   $("#attAllPresent").addEventListener("click", async () => {
     const date = $("#attDate").value;
     if (!date || !attStudents.length) return;
