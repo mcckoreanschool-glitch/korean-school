@@ -45,6 +45,32 @@ module.exports = async function handler(req, res) {
   const link = `${SITE_URL}/apply?token=${encodeURIComponent(applyToken)}`;
   const safeName = String(name || "").replace(/[<>]/g, "");
 
+  // ── 2.5) 고정 안내문 조회 (admin에서 편집, site_settings 테이블) ──
+  // 실패해도 이메일 발송은 계속 진행 (안내문 없이)
+  const escHtml = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let extraBlock = "";
+  try {
+    const setRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/site_settings?select=key,value&key=in.(email_extra_ko,email_extra_en)`,
+      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${jwt}` } }
+    );
+    if (setRes.ok) {
+      const rows = await setRes.json();
+      const map = {};
+      rows.forEach((r) => { map[r.key] = (r.value || "").trim(); });
+      const ko = map.email_extra_ko, en = map.email_extra_en;
+      if (ko || en) {
+        const toHtml = (t) => escHtml(t).replace(/\n/g, "<br>");
+        extraBlock = `
+      <div style="background:#fcf6e3;border:1px solid #f0e4bd;border-radius:12px;padding:16px 18px;margin:4px 0 18px">
+        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#8a6a0c">📌 안내사항 · Notes</p>
+        ${ko ? `<p style="margin:0;font-size:14px;line-height:1.8;color:#55503f">${toHtml(ko)}</p>` : ""}
+        ${en ? `<p style="margin:${ko ? "10px" : "0"} 0 0;font-size:12.5px;line-height:1.7;color:#8a8471">${toHtml(en)}</p>` : ""}
+      </div>`;
+      }
+    }
+  } catch (e) { /* 안내문 조회 실패는 무시 */ }
+
   const html = `
   <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;color:#221e13">
     <div style="background:#f2ce54;padding:22px 24px;border-radius:14px 14px 0 0">
@@ -61,7 +87,7 @@ module.exports = async function handler(req, res) {
         <a href="${link}" style="background:#23895e;background:#b8890f;color:#fff;text-decoration:none;padding:14px 30px;border-radius:999px;font-weight:600;display:inline-block">
           신청서 작성하기 · Open Application
         </a>
-      </p>
+      </p>${extraBlock}
       <p style="font-size:12px;color:#8a8471;line-height:1.6">
         버튼이 안 보이면 이 링크를 복사해 열어주세요 / If the button doesn't work, copy this link:<br>
         <a href="${link}" style="color:#8a6a0c;word-break:break-all">${link}</a>

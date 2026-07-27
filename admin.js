@@ -193,6 +193,30 @@
     if (window.attachPhoneFormat) window.attachPhoneFormat($("#d_phone"));
   });
 
+  // 신청서 이메일에 함께 실리는 고정 안내문 편집
+  $("#editEmailExtra").addEventListener("click", async () => {
+    const { data, error } = await sb.from("site_settings").select("key, value")
+      .in("key", ["email_extra_ko", "email_extra_en"]);
+    if (error) { toast("안내문 불러오기 실패 (마이그레이션 SQL 실행 확인)", true); return; }
+    const map = {};
+    (data || []).forEach((r) => { map[r.key] = r.value || ""; });
+    openModal("이메일 안내문 수정", `
+      <p class="panel-hint" style="margin:0 0 4px">신청서 발송 이메일의 <b>"신청서 작성하기" 버튼 아래</b>에 함께 실리는 고정 안내문입니다. 비워두면 안내문 없이 발송됩니다. 줄바꿈이 그대로 반영돼요.</p>
+      <div class="field"><label>안내문 (한국어)</label><textarea id="s_extra_ko" rows="6" placeholder="예)&#10;· 개강일: 9월 첫째 주 토요일&#10;· 준비물: 필기도구, 실내화&#10;· 문의: school@mcckoreanschool.org">${esc(map.email_extra_ko)}</textarea></div>
+      <div class="field"><label>안내문 (영어 · 선택)</label><textarea id="s_extra_en" rows="6" placeholder="e.g.&#10;· First day: first Saturday of September&#10;· Bring: pencils, indoor shoes">${esc(map.email_extra_en)}</textarea></div>
+    `, async () => {
+      const now = new Date().toISOString();
+      const rows = [
+        { key: "email_extra_ko", value: $("#s_extra_ko").value.trim(), updated_at: now },
+        { key: "email_extra_en", value: $("#s_extra_en").value.trim(), updated_at: now },
+      ];
+      const { error: upErr } = await sb.from("site_settings").upsert(rows);
+      if (upErr) { toast("저장 실패: " + upErr.message, true); return false; }
+      toast("안내문이 저장되었습니다. 다음 발송부터 적용돼요.");
+      return true;
+    });
+  });
+
   // ============================================================
   //  2) 제출된 신청서 (applications)
   // ============================================================
