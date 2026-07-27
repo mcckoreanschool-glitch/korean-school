@@ -54,6 +54,7 @@
     loadHeroSlides();
     loadSiteImages();
     loadStudentBoard();
+    initAttendance();
   }
   $("#heroAdd").addEventListener("change", (e) => {
     // FileList는 입력창과 연동된 live 객체 — 비우기 전에 반드시 복사해둬야 함
@@ -651,6 +652,118 @@
     const s = CROP_VIEW / c.scale;
     out.getContext("2d").drawImage(c.img, c.cx - s / 2, c.cy - s / 2, s, s, 0, 0, CROP_OUT, CROP_OUT);
     out.toBlob((blob) => closeCropper(blob), "image/jpeg", 0.9);
+  });
+
+  // ============================================================
+  //  2.7) 출석 체크 — 반·날짜별로 학생 출석/지각/결석 기록
+  // ============================================================
+  const ATT_STATUS = { present: "출석", late: "지각", absent: "결석" };
+  let attStudents = [];
+  let attRecords = {};   // student_id → 출석 레코드
+
+  // 수업이 주일이므로 기본 날짜 = 가장 최근 일요일 (오늘이 일요일이면 오늘)
+  function lastSundayYMD() {
+    const d = new Date();
+    d.setDate(d.getDate() - d.getDay());
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  async function initAttendance() {
+    $("#attDate").value = lastSundayYMD();
+    const { data } = await sb.from("programs").select("id, name_ko, sort_order").order("sort_order", { ascending: true });
+    $("#attClass").innerHTML =
+      (data || []).map((c) => `<option value="${c.id}">${esc(c.name_ko)}</option>`).join("") +
+      `<option value="">미배정</option>`;
+    loadAttendance();
+  }
+
+  async function loadAttendance() {
+    const date = $("#attDate").value;
+    const cls = $("#attClass").value;
+    const box = $("#attList");
+    if (!date) { box.innerHTML = `<p class="empty">날짜를 선택하세요.</p>`; return; }
+    let q = sb.from("applications").select("*").eq("status", "enrolled");
+    q = cls ? q.eq("class_id", cls) : q.is("class_id", null);
+    const [stuRes, attRes] = await Promise.all([
+      q.order("student_name_ko", { ascending: true }),
+      sb.from("attendance").select("*").eq("class_date", date),
+    ]);
+    if (stuRes.error || attRes.error) {
+      box.innerHTML = `<p class="empty">불러오기 실패: ${esc((stuRes.error || attRes.error).message)}<br>(출석 마이그레이션 SQL 실행을 확인하세요)</p>`;
+      return;
+    }
+    attStudents = stuRes.data || [];
+    attRecords = {};
+    (attRes.data || []).forEach((r) => { attRecords[r.student_id] = r; });
+    renderAttendance();
+  }
+
+  function renderAttendance() {
+    const box = $("#attList");
+    if (!attStudents.length) {
+      box.innerHTML = `<p class="empty">이 반에 배정된 학생이 없습니다. (🎓 학생/반 배정 탭에서 배정하세요)</p>`;
+      $("#attSummary").innerHTML = "";
+      return;
+    }
+    box.innerHTML = attStudents.map((s) => {
+      const st = attRecords[s.id] ? attRecords[s.id].status : "";
+      const btn = (k) => `<button class="att-btn att-${k}${st === k ? " on" : ""}" data-att="${s.id}" data-set="${k}">${ATT_STATUS[k]}</button>`;
+      return `
+      <div class="admin-item att-item">
+        <div class="ai-main">
+          <h3>${esc(s.student_name_ko || s.child_name || "(이름 없음)")}${s.student_name_en ? ` <span class="muted">(${esc(s.student_name_en)})</span>` : ""}</h3>
+          <p class="ai-meta">학년 ${esc(s.current_grade) || "-"}</p>
+        </div>
+        <div class="att-btns">${btn("present")}${btn("late")}${btn("absent")}</div>
+      </div>`;
+    }).join("");
+
+    const counts = { present: 0, late: 0, absent: 0 };
+    attStudents.forEach((s) => { const r = attRecords[s.id]; if (r && counts[r.status] != null) counts[r.status]++; });
+    const unchecked = attStudents.length - counts.present - counts.late - counts.absent;
+    $("#attSummary").innerHTML = `
+      <span class="att-pill att-p">출석 ${counts.present}</span>
+      <span class="att-pill att-l">지각 ${counts.late}</span>
+      <span class="att-pill att-a">결석 ${counts.absent}</span>
+      <span class="att-pill">미체크 ${unchecked}</span>
+      <span class="att-pill att-total">총 ${attStudents.length}명</span>`;
+
+    $$("#attList [data-att]").forEach((b) =>
+      b.addEventListener("click", () => setAttendance(b.dataset.att, b.dataset.set)));
+  }
+
+  async function setAttendance(studentId, status) {
+    const date = $("#attDate").value;
+    const cur = attRecords[studentId];
+    if (cur && cur.status === status) {
+      // 같은 버튼 다시 누름 → 체크 해제
+      const { error } = await sb.from("attendance").delete().eq("id", cur.id);
+      if (error) return toast("저장 실패: " + error.message, true);
+      delete attRecords[studentId];
+    } else {
+      const { data, error } = await sb.from("attendance")
+        .upsert({ class_date: date, student_id: studentId, status }, { onConflict: "class_date,student_id" })
+        .select().single();
+      if (error) return toast("저장 실패: " + error.message, true);
+      attRecords[studentId] = data;
+    }
+    renderAttendance();
+  }
+
+  $("#attDate").addEventListener("change", loadAttendance);
+  $("#attClass").addEventListener("change", loadAttendance);
+  $("#attAllPresent").addEventListener("click", async () => {
+    const date = $("#attDate").value;
+    if (!date || !attStudents.length) return;
+    const rows = attStudents.filter((s) => !attRecords[s.id])
+      .map((s) => ({ class_date: date, student_id: s.id, status: "present" }));
+    if (!rows.length) return toast("모든 학생이 이미 체크되어 있어요.");
+    const { data, error } = await sb.from("attendance")
+      .upsert(rows, { onConflict: "class_date,student_id" }).select();
+    if (error) return toast("저장 실패: " + error.message, true);
+    (data || []).forEach((r) => { attRecords[r.student_id] = r; });
+    toast(`${rows.length}명을 출석 처리했습니다.`);
+    renderAttendance();
   });
 
   // ============================================================
