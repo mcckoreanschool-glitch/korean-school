@@ -193,27 +193,109 @@
     if (window.attachPhoneFormat) window.attachPhoneFormat($("#d_phone"));
   });
 
-  // 신청서 이메일에 함께 실리는 고정 안내문 편집
+  // 신청서 이메일에 함께 실리는 고정 안내문 편집 (서식 편집기)
   $("#editEmailExtra").addEventListener("click", async () => {
     const { data, error } = await sb.from("site_settings").select("key, value")
       .in("key", ["email_extra_ko", "email_extra_en"]);
     if (error) { toast("안내문 불러오기 실패 (마이그레이션 SQL 실행 확인)", true); return; }
     const map = {};
     (data || []).forEach((r) => { map[r.key] = r.value || ""; });
+
+    // 저장된 값 → 편집기 초기 HTML (예전 일반 텍스트는 줄바꿈만 <br>로)
+    const isHtml = (v) => /<[a-z][^>]*>/i.test(v || "");
+    const toEditor = (v) => (isHtml(v) ? v : esc(v).replace(/\n/g, "<br>"));
+    // 편집기 → 저장 값 (내용이 실제로 없으면 빈 문자열)
+    const fromEditor = (el) => (el.textContent.trim() || el.querySelector("img") ? el.innerHTML.trim() : "");
+
+    const rtBar = (target) => `
+      <div class="rt-bar" data-target="${target}">
+        <button type="button" data-cmd="bold" title="굵게"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="기울임"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="밑줄"><u>U</u></button>
+        <span class="rt-sep"></span>
+        <select data-size title="글자 크기">
+          <option value="">크기</option>
+          <option value="2">작게</option>
+          <option value="3">보통</option>
+          <option value="5">크게</option>
+          <option value="6">아주 크게</option>
+        </select>
+        <span class="rt-sep"></span>
+        <button type="button" class="rt-color" data-color="#221e13" style="color:#221e13" title="검정">가</button>
+        <button type="button" class="rt-color" data-color="#c0392b" style="color:#c0392b" title="빨강">가</button>
+        <button type="button" class="rt-color" data-color="#1d6fb8" style="color:#1d6fb8" title="파랑">가</button>
+        <button type="button" class="rt-color" data-color="#8a6a0c" style="color:#8a6a0c" title="금색">가</button>
+        <span class="rt-sep"></span>
+        <button type="button" data-cmd="removeFormat" title="선택한 부분의 서식 지우기">지우개</button>
+      </div>`;
+
     openModal("이메일 안내문 수정", `
-      <p class="panel-hint" style="margin:0 0 4px">신청서 발송 이메일의 <b>"신청서 작성하기" 버튼 아래</b>에 함께 실리는 고정 안내문입니다. 비워두면 안내문 없이 발송됩니다. 줄바꿈이 그대로 반영돼요.</p>
-      <div class="field"><label>안내문 (한국어)</label><textarea id="s_extra_ko" rows="6" placeholder="예)&#10;· 개강일: 9월 첫째 주 토요일&#10;· 준비물: 필기도구, 실내화&#10;· 문의: school@mcckoreanschool.org">${esc(map.email_extra_ko)}</textarea></div>
-      <div class="field"><label>안내문 (영어 · 선택)</label><textarea id="s_extra_en" rows="6" placeholder="e.g.&#10;· First day: first Saturday of September&#10;· Bring: pencils, indoor shoes">${esc(map.email_extra_en)}</textarea></div>
+      <p class="panel-hint" style="margin:0 0 4px">신청서 발송 이메일의 <b>"신청서 작성하기" 버튼 아래</b>에 함께 실리는 고정 안내문입니다. 비워두면 안내문 없이 발송됩니다.<br>✏️ 서식: 바꾸고 싶은 글자를 <b>드래그로 선택한 뒤</b> 위 버튼(굵게·크기·색상)을 누르세요.</p>
+      <div class="field"><label>안내문 (한국어)</label>
+        ${rtBar("s_extra_ko")}
+        <div class="rt-editor" id="s_extra_ko" contenteditable="true" data-placeholder="예)&#10;· 개강일: 9월 첫째 주 토요일&#10;· 준비물: 필기도구, 실내화">${toEditor(map.email_extra_ko)}</div>
+      </div>
+      <div class="field"><label>안내문 (영어 · 선택)</label>
+        ${rtBar("s_extra_en")}
+        <div class="rt-editor" id="s_extra_en" contenteditable="true" data-placeholder="e.g. · First day: first Saturday of September">${toEditor(map.email_extra_en)}</div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="s_preview">👁 이메일 미리보기</button>
+      <div id="s_preview_box" class="email-preview" hidden>
+        <p class="ep-label">받는 사람에게 이렇게 보입니다 (지금 입력 중인 내용 기준):</p>
+        <iframe id="s_preview_frame" title="이메일 미리보기" sandbox=""></iframe>
+      </div>
     `, async () => {
       const now = new Date().toISOString();
       const rows = [
-        { key: "email_extra_ko", value: $("#s_extra_ko").value.trim(), updated_at: now },
-        { key: "email_extra_en", value: $("#s_extra_en").value.trim(), updated_at: now },
+        { key: "email_extra_ko", value: fromEditor($("#s_extra_ko")), updated_at: now },
+        { key: "email_extra_en", value: fromEditor($("#s_extra_en")), updated_at: now },
       ];
       const { error: upErr } = await sb.from("site_settings").upsert(rows);
       if (upErr) { toast("저장 실패: " + upErr.message, true); return false; }
       toast("안내문이 저장되었습니다. 다음 발송부터 적용돼요.");
       return true;
+    });
+
+    // 서식 도구막대 동작 (execCommand — 인라인 스타일로 기록되어 이메일에 그대로 반영)
+    document.execCommand("styleWithCSS", false, true);
+    $$(".rt-bar").forEach((bar) => {
+      const editor = $("#" + bar.dataset.target);
+      const run = (cmd, val) => { editor.focus(); document.execCommand(cmd, false, val || null); };
+      bar.querySelectorAll("[data-cmd]").forEach((b) =>
+        b.addEventListener("mousedown", (e) => { e.preventDefault(); run(b.dataset.cmd); }));
+      bar.querySelectorAll(".rt-color").forEach((b) =>
+        b.addEventListener("mousedown", (e) => { e.preventDefault(); run("foreColor", b.dataset.color); }));
+      const sizeSel = bar.querySelector("[data-size]");
+      sizeSel.addEventListener("change", () => {
+        if (sizeSel.value) { run("fontSize", sizeSel.value); sizeSel.value = ""; }
+      });
+    });
+
+    // 미리보기: 지금 입력 중인(저장 전 포함) 내용으로 실제 발송 HTML을 받아 표시
+    $("#s_preview").addEventListener("click", async () => {
+      const btn = $("#s_preview");
+      btn.disabled = true; btn.textContent = "불러오는 중…";
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const resp = await fetch("/api/send-application", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({
+            preview: true,
+            extra_ko: fromEditor($("#s_extra_ko")),
+            extra_en: fromEditor($("#s_extra_en")),
+          }),
+        });
+        const j = await resp.json().catch(() => ({}));
+        if (!resp.ok || !j.html) { toast("미리보기 실패" + (j.error ? ": " + j.error : ""), true); return; }
+        const frame = $("#s_preview_frame");
+        frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:16px;background:#fff">${j.html}</body></html>`;
+        $("#s_preview_box").hidden = false;
+      } catch (e) {
+        toast("미리보기 오류: " + e.message, true);
+      } finally {
+        btn.disabled = false; btn.textContent = "👁 이메일 미리보기";
+      }
     });
   });
 

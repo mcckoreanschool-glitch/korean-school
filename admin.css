@@ -185,3 +185,19 @@
 .si-block { margin-bottom: 34px; }
 .panel-head.sub { margin-bottom: 6px; }
 .panel-head.sub h2 { font-size: 17px; font-weight: 700; }
+
+/* 이메일 안내문 — 미리보기 */
+.email-preview { margin-top: 14px; }
+.email-preview .ep-label { font-size: 12.5px; color: var(--muted, #8a8471); margin: 0 0 8px; }
+.email-preview iframe { width: 100%; height: 480px; border: 1px solid var(--line, #ece7d8); border-radius: 12px; background: #fff; }
+
+/* 이메일 안내문 — 서식 편집기 */
+.rt-bar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 6px 8px; border: 1px solid var(--line, #ece7d8); border-bottom: none; border-radius: 10px 10px 0 0; background: #faf8f0; }
+.rt-bar button { min-width: 30px; height: 28px; padding: 0 8px; border: 1px solid transparent; border-radius: 6px; background: transparent; font-size: 13.5px; cursor: pointer; }
+.rt-bar button:hover { background: #f0ead2; border-color: #e3dbbc; }
+.rt-bar select { height: 28px; border: 1px solid var(--line, #ece7d8); border-radius: 6px; background: #fff; font-size: 12.5px; padding: 0 4px; }
+.rt-bar .rt-sep { width: 1px; height: 18px; background: var(--line, #ece7d8); margin: 0 3px; }
+.rt-bar .rt-color { font-weight: 700; }
+.rt-editor { min-height: 130px; max-height: 300px; overflow-y: auto; padding: 12px 14px; border: 1px solid var(--line, #ece7d8); border-radius: 0 0 10px 10px; background: #fff; font-size: 14.5px; line-height: 1.8; outline: none; }
+.rt-editor:focus { border-color: #d9c66b; }
+.rt-editor:empty::before { content: attr(data-placeholder); color: #b9b29a; white-space: pre-line; }
