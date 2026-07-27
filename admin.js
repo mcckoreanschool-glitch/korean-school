@@ -53,6 +53,7 @@
     loadPrograms();
     loadHeroSlides();
     loadSiteImages();
+    loadStudentBoard();
   }
   $("#heroAdd").addEventListener("change", (e) => {
     // FileList는 입력창과 연동된 live 객체 — 비우기 전에 반드시 복사해둬야 함
@@ -343,14 +344,15 @@
       const { error } = await sb.from("applications").update({ status: e.target.value }).eq("id", e.target.dataset.status);
       if (error) return toast("상태 변경 실패", true);
       const rec = appsCache.find((x) => x.id === e.target.dataset.status); if (rec) rec.status = e.target.value;
-      loadApplications(); toast("상태가 변경되었습니다.");
+      loadApplications(); loadStudentBoard();
+      toast(e.target.value === "enrolled" ? "등록완료! 학생/반 배정 탭에 카드가 생겼어요." : "상태가 변경되었습니다.");
     }));
     $$("#appsList [data-detail]").forEach((b) => b.addEventListener("click", () => showAppDetail(appsCache.find((x) => x.id === b.dataset.detail))));
     $$("#appsList [data-del]").forEach((b) => b.addEventListener("click", async () => {
       if (!confirm("이 신청서를 삭제할까요?")) return;
       const { error } = await sb.from("applications").delete().eq("id", b.dataset.del);
       if (error) return toast("삭제 실패", true);
-      toast("삭제되었습니다."); loadApplications();
+      toast("삭제되었습니다."); loadApplications(); loadStudentBoard();
     }));
   }
 
@@ -407,6 +409,88 @@
     el.href = url; el.download = "제출된_신청서.csv"; el.click();
     URL.revokeObjectURL(url);
   });
+
+  // ============================================================
+  //  2.5) 학생 / 반 배정 보드 (등록완료된 신청서 = 학생 카드)
+  // ============================================================
+  let boardStudents = [];
+
+  async function loadStudentBoard() {
+    const box = $("#studentBoard");
+    if (!box) return;
+    const [clsRes, stuRes] = await Promise.all([
+      sb.from("programs").select("id, name_ko, tag_ko, sort_order").order("sort_order", { ascending: true }),
+      sb.from("applications").select("*").eq("status", "enrolled").order("created_at", { ascending: true }),
+    ]);
+    if (clsRes.error || stuRes.error) {
+      box.innerHTML = `<p class="empty">불러오기 실패: ${esc((clsRes.error || stuRes.error).message)}<br>(반 배정 마이그레이션 SQL 실행을 확인하세요)</p>`;
+      return;
+    }
+    boardStudents = stuRes.data || [];
+    const cols = [{ id: "", name_ko: "🗂 미배정", tag_ko: "" }, ...(clsRes.data || [])];
+
+    const cardHtml = (s) => {
+      const name = esc(s.student_name_ko || s.child_name || "(이름 없음)");
+      const meta = [s.current_grade, s.korean_level].filter(Boolean).map(esc).join(" · ");
+      const opts = cols.map((c) => `<option value="${c.id}" ${(s.class_id || "") === c.id ? "selected" : ""}>${esc(c.id ? c.name_ko : "미배정")}</option>`).join("");
+      return `
+      <div class="st-card" draggable="true" data-id="${s.id}" title="클릭하면 학생 정보를 볼 수 있어요">
+        <b>${name}</b>${s.student_name_en ? `<small class="st-en">${esc(s.student_name_en)}</small>` : ""}
+        ${meta ? `<span class="st-meta">${meta}</span>` : ""}
+        <select class="st-move" data-move="${s.id}" title="반 이동">${opts}</select>
+      </div>`;
+    };
+
+    box.innerHTML = cols.map((c) => {
+      const list = boardStudents.filter((s) => (s.class_id || "") === c.id);
+      return `
+      <div class="st-col" data-class="${c.id}">
+        <div class="st-col-head">
+          <span>${esc(c.name_ko)}</span>
+          <b class="st-count">${list.length}</b>
+        </div>
+        <div class="st-col-body">
+          ${list.map(cardHtml).join("") || '<p class="st-empty">여기로 드래그</p>'}
+        </div>
+      </div>`;
+    }).join("");
+
+    // 카드 클릭 → 상세, 드래그 → 반 배정
+    $$("#studentBoard .st-card").forEach((card) => {
+      card.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", card.dataset.id);
+        e.dataTransfer.effectAllowed = "move";
+        card.classList.add("dragging");
+      });
+      card.addEventListener("dragend", () => card.classList.remove("dragging"));
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".st-move")) return;   // 반 선택 메뉴 클릭은 제외
+        showAppDetail(boardStudents.find((x) => x.id === card.dataset.id));
+      });
+    });
+    $$("#studentBoard .st-move").forEach((sel) => {
+      sel.addEventListener("click", (e) => e.stopPropagation());
+      sel.addEventListener("change", () => assignStudent(sel.dataset.move, sel.value || null));
+    });
+    $$("#studentBoard .st-col").forEach((col) => {
+      col.addEventListener("dragover", (e) => { e.preventDefault(); col.classList.add("drag-over"); });
+      col.addEventListener("dragleave", (e) => { if (!col.contains(e.relatedTarget)) col.classList.remove("drag-over"); });
+      col.addEventListener("drop", (e) => {
+        e.preventDefault(); col.classList.remove("drag-over");
+        const id = e.dataTransfer.getData("text/plain");
+        if (id) assignStudent(id, col.dataset.class || null);
+      });
+    });
+  }
+
+  async function assignStudent(id, classId) {
+    const s = boardStudents.find((x) => x.id === id);
+    if (s && (s.class_id || null) === classId) return;   // 같은 반이면 무시
+    const { error } = await sb.from("applications").update({ class_id: classId }).eq("id", id);
+    if (error) { toast("배정 실패: " + error.message, true); return; }
+    toast(classId ? "반이 배정되었습니다." : "미배정으로 이동했습니다.");
+    loadStudentBoard();
+  }
 
   // ============================================================
   //  3) 공지사항
