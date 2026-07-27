@@ -47,11 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  /* ---- 4. 등장 애니메이션 ---- */
+  /* ---- 4. 등장 애니메이션 (스크롤 시 순차 등장) ---- */
   const io = ('IntersectionObserver' in window)
     ? new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-      }, { threshold: 0.12 })
+        // 동시에 화면에 들어온 요소들은 90ms 간격으로 하나씩 등장
+        entries.filter(e => e.isIntersecting).forEach((e, i) => {
+          setTimeout(() => e.target.classList.add('in'), i * 90);
+          io.unobserve(e.target);
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' })
     : null;
 
   function observeReveals(els) {
@@ -61,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   observeReveals(document.querySelectorAll(
-    '.section-head, .about-grid, .program-grid, .schedule, .admission-form, .steps, .news-item, .g-item, .location-grid'
+    '.section-head, .about-message, .about-values .value, .program, .schedule, .admission-form, .steps, .news-item, .g-item, .location-info, .location-map'
   ));
 
   /* ============================================================

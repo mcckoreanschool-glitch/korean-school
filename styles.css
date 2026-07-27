@@ -274,8 +274,30 @@ img { max-width: 100%; display: block; }
 .footer-copy { font-size: 13px; color: #9a9179; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.1); }
 
 /* ===== Reveal Animation ===== */
-[data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+/* 기본: 아래에서 살짝 떠오르며 등장 */
+[data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity .7s cubic-bezier(.22,.75,.3,1), transform .7s cubic-bezier(.22,.75,.3,1); }
 [data-reveal].in { opacity: 1; transform: none; }
+/* 카드류: 살짝 작아졌다가 커지며 등장 */
+.program[data-reveal], .value[data-reveal], .g-item[data-reveal] { transform: translateY(26px) scale(.955); }
+/* 소개 인사말은 왼쪽에서, 오시는 길 지도는 오른쪽에서 */
+.about-message[data-reveal] { transform: translateX(-34px); }
+.location-map[data-reveal] { transform: translateX(34px); }
+.location-info[data-reveal] { transform: translateX(-34px); }
+
+/* 히어로: 페이지 열릴 때 위→아래 순서로 떠오름 */
+@keyframes heroRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.hero-eyebrow, .hero-title, .hero-sub, .hero-cta, .hero-stats { animation: heroRise .75s cubic-bezier(.22,.75,.3,1) both; }
+.hero-title  { animation-delay: .1s; }
+.hero-sub    { animation-delay: .2s; }
+.hero-cta    { animation-delay: .3s; }
+.hero-stats  { animation-delay: .42s; }
+
+/* 움직임을 줄이도록 설정한 사용자는 애니메이션 없이 바로 표시 */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .hero-eyebrow, .hero-title, .hero-sub, .hero-cta, .hero-stats { animation: none !important; }
+  .hero-slide { transition: none !important; }
+}
 
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
