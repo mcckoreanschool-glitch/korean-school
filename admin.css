@@ -204,20 +204,20 @@
 
 /* 학생 / 반 배정 보드 */
 .st-board { display: flex; gap: 14px; align-items: flex-start; overflow-x: auto; padding-bottom: 12px; }
-.st-col { flex: 0 0 225px; background: #f6f3ea; border: 1px solid var(--line, #ece7d8); border-radius: 14px; padding: 10px; min-height: 240px; transition: background .15s, border-color .15s; }
+.st-col { flex: 0 0 300px; background: #f6f3ea; border: 1px solid var(--line, #ece7d8); border-radius: 14px; padding: 10px; min-height: 240px; transition: background .15s, border-color .15s; }
 .st-col.drag-over { background: #fdf3cf; border-color: #e8cf6a; }
-.st-col-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 10px; font-weight: 700; font-size: 14.5px; }
+.st-col-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px 12px; font-weight: 700; font-size: 16px; }
 .st-col-head .st-count { background: #fff; border: 1px solid var(--line, #ece7d8); border-radius: 999px; min-width: 24px; text-align: center; font-size: 12px; padding: 2px 7px; color: #8a6a0c; }
 .st-col-body { display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
 .st-empty { text-align: center; color: #b9b29a; font-size: 12.5px; padding: 22px 0; border: 1.5px dashed #e3dbbc; border-radius: 10px; margin: 0; }
-.st-card { background: #fff; border: 1px solid var(--line, #ece7d8); border-radius: 10px; padding: 10px 12px; cursor: grab; box-shadow: 0 1px 3px rgba(60,48,16,.06); display: flex; flex-direction: column; gap: 3px; }
+.st-card { background: #fff; border: 1px solid var(--line, #ece7d8); border-radius: 10px; padding: 15px 16px; cursor: grab; box-shadow: 0 1px 3px rgba(60,48,16,.06); display: flex; flex-direction: column; gap: 6px; }
 .st-card:hover { border-color: #e0d193; box-shadow: 0 3px 10px rgba(60,48,16,.10); }
 .st-card:active { cursor: grabbing; }
 .st-card.dragging { opacity: .45; }
-.st-card b { font-size: 14.5px; }
-.st-card .st-en { color: #9a9179; font-size: 12px; }
-.st-card .st-meta { font-size: 12px; color: #77704f; }
-.st-card .st-move { margin-top: 6px; width: 100%; height: 26px; font-size: 12px; border: 1px solid var(--line, #ece7d8); border-radius: 7px; background: #faf8f0; color: #55503f; }
+.st-card b { font-size: 17px; }
+.st-card .st-en { color: #9a9179; font-size: 13.5px; }
+.st-card .st-meta { font-size: 13.5px; color: #77704f; }
+.st-card .st-move { margin-top: 8px; width: 100%; height: 32px; font-size: 13.5px; border: 1px solid var(--line, #ece7d8); border-radius: 7px; background: #faf8f0; color: #55503f; }
 
 /* 학생 사진 (상세 모달) */
 .st-photo-box { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line, #ece7d8); }
@@ -226,9 +226,9 @@
 .st-photo-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 
 /* 학생 카드 아바타 (배정 보드) */
-.st-card-top { display: flex; align-items: center; gap: 9px; }
+.st-card-top { display: flex; align-items: center; gap: 12px; }
 .st-card-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.st-avatar { width: 36px; height: 36px; flex: none; border-radius: 50%; background: #f2eddc; border: 1px solid #e8dfbd; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #a89653; overflow: hidden; }
+.st-avatar { width: 58px; height: 58px; flex: none; border-radius: 50%; background: #f2eddc; border: 1px solid #e8dfbd; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #a89653; overflow: hidden; }
 .st-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* 사진 조절(크롭) 창 */
