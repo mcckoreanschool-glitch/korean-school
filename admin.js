@@ -233,11 +233,11 @@
       <p class="panel-hint" style="margin:0 0 4px">신청서 발송 이메일의 <b>"신청서 작성하기" 버튼 아래</b>에 함께 실리는 고정 안내문입니다. 비워두면 안내문 없이 발송됩니다.<br>✏️ 서식: 바꾸고 싶은 글자를 <b>드래그로 선택한 뒤</b> 위 버튼(굵게·크기·색상)을 누르세요.</p>
       <div class="field"><label>안내문 (한국어)</label>
         ${rtBar("s_extra_ko")}
-        <div class="rt-editor" id="s_extra_ko" contenteditable="true" data-placeholder="예)&#10;· 개강일: 9월 첫째 주 토요일&#10;· 준비물: 필기도구, 실내화">${toEditor(map.email_extra_ko)}</div>
+        <div class="rt-editor" id="s_extra_ko" contenteditable="true" data-placeholder="예)&#10;· 개강일: 9월 첫째 주 주일&#10;· 준비물: 필기도구, 실내화">${toEditor(map.email_extra_ko)}</div>
       </div>
       <div class="field"><label>안내문 (영어 · 선택)</label>
         ${rtBar("s_extra_en")}
-        <div class="rt-editor" id="s_extra_en" contenteditable="true" data-placeholder="e.g. · First day: first Saturday of September">${toEditor(map.email_extra_en)}</div>
+        <div class="rt-editor" id="s_extra_en" contenteditable="true" data-placeholder="e.g. · First day: first Sunday of September">${toEditor(map.email_extra_en)}</div>
       </div>
       <button type="button" class="btn btn-ghost btn-sm" id="s_preview">👁 이메일 미리보기</button>
       <div id="s_preview_box" class="email-preview" hidden>
