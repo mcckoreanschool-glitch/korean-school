@@ -356,10 +356,20 @@
     }));
   }
 
+  const ST_BUCKET = "students";   // 학생 사진 전용 비공개 버킷 (관리자만 접근)
+
   function showAppDetail(a) {
     if (!a) return;
     const row = (label, val) => `<div class="dl-row"><dt>${label}</dt><dd>${esc(val) || "-"}</dd></div>`;
     const yn = (v) => (v ? "✓ 동의" : "✗ 미동의");
+    const photoBox = `
+      <div class="st-photo-box">
+        <div class="st-photo" id="stPhotoImg">${esc((a.student_name_ko || a.child_name || "?").charAt(0))}</div>
+        <div class="st-photo-actions">
+          <label class="btn btn-ghost btn-sm file-btn" id="stPhotoBtn">📷 ${a.photo_path ? "사진 변경" : "사진 올리기"}<input type="file" id="stPhotoFile" accept="image/*" hidden></label>
+          <button class="icon-btn danger" id="stPhotoDel" ${a.photo_path ? "" : "hidden"}>사진 삭제</button>
+        </div>
+      </div>`;
     const html = `
       <h4 class="dl-sec">① 학생 정보</h4>
       ${row("이름 (한글)", a.student_name_ko)}${row("이름 (영문)", a.student_name_en)}
@@ -378,7 +388,59 @@
       <h4 class="dl-sec">⑤ 기타</h4>
       ${row("문의사항", a.message)}
       <div class="dl-row"><dt>제출일</dt><dd>${new Date(a.created_at).toLocaleString("ko-KR")}</dd></div>`;
-    openModal(`신청서 · ${esc(a.student_name_ko || "")}`, `<dl class="detail-dl">${html}</dl>`, null);
+    openModal(`신청서 · ${esc(a.student_name_ko || "")}`, `${photoBox}<dl class="detail-dl">${html}</dl>`, null);
+
+    // 사진 표시 (비공개 버킷 → 서명 URL로 관리자만 열람)
+    const renderPhoto = async () => {
+      const box = $("#stPhotoImg");
+      if (!a.photo_path) {
+        box.innerHTML = esc((a.student_name_ko || a.child_name || "?").charAt(0));
+        $("#stPhotoDel").hidden = true;
+        return;
+      }
+      const { data, error } = await sb.storage.from(ST_BUCKET).createSignedUrl(a.photo_path, 3600);
+      if (error || !data) { toast("사진 불러오기 실패 (학생 사진 마이그레이션 확인)", true); return; }
+      box.innerHTML = `<img src="${data.signedUrl}" alt="학생 사진">`;
+      $("#stPhotoDel").hidden = false;
+    };
+    renderPhoto();
+
+    // 캐시(신청서 목록·배정 보드) 동기화
+    const syncCaches = (path) => {
+      [appsCache, boardStudents].forEach((arr) => {
+        const r = (arr || []).find((x) => x.id === a.id);
+        if (r) r.photo_path = path;
+      });
+      a.photo_path = path;
+    };
+
+    $("#stPhotoFile").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      toast("업로드 중…");
+      const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+      const path = `${a.id}-${Date.now()}.${ext}`;
+      const up = await sb.storage.from(ST_BUCKET).upload(path, file);
+      if (up.error) { toast("업로드 실패: " + up.error.message, true); return; }
+      const { error } = await sb.from("applications").update({ photo_path: path }).eq("id", a.id);
+      if (error) { toast("저장 실패: " + error.message, true); return; }
+      if (a.photo_path) await sb.storage.from(ST_BUCKET).remove([a.photo_path]);
+      syncCaches(path);
+      $("#stPhotoBtn").firstChild.textContent = "📷 사진 변경";
+      toast("사진이 저장되었습니다.");
+      renderPhoto(); loadStudentBoard();
+    });
+
+    $("#stPhotoDel").addEventListener("click", async () => {
+      if (!confirm("이 학생의 사진을 삭제할까요?")) return;
+      await sb.storage.from(ST_BUCKET).remove([a.photo_path]);
+      const { error } = await sb.from("applications").update({ photo_path: null }).eq("id", a.id);
+      if (error) { toast("삭제 실패: " + error.message, true); return; }
+      syncCaches(null);
+      toast("사진이 삭제되었습니다.");
+      renderPhoto(); loadStudentBoard();
+    });
   }
 
   $("#appFilter").addEventListener("change", renderApps);
@@ -435,8 +497,13 @@
       const opts = cols.map((c) => `<option value="${c.id}" ${(s.class_id || "") === c.id ? "selected" : ""}>${esc(c.id ? c.name_ko : "미배정")}</option>`).join("");
       return `
       <div class="st-card" draggable="true" data-id="${s.id}" title="클릭하면 학생 정보를 볼 수 있어요">
-        <b>${name}</b>${s.student_name_en ? `<small class="st-en">${esc(s.student_name_en)}</small>` : ""}
-        ${meta ? `<span class="st-meta">${meta}</span>` : ""}
+        <div class="st-card-top">
+          <span class="st-avatar" data-avatar="${esc(s.photo_path || "")}">${esc((s.student_name_ko || s.child_name || "?").charAt(0))}</span>
+          <div class="st-card-name">
+            <b>${name}</b>${s.student_name_en ? `<small class="st-en">${esc(s.student_name_en)}</small>` : ""}
+            ${meta ? `<span class="st-meta">${meta}</span>` : ""}
+          </div>
+        </div>
         <select class="st-move" data-move="${s.id}" title="반 이동">${opts}</select>
       </div>`;
     };
@@ -481,6 +548,18 @@
         if (id) assignStudent(id, col.dataset.class || null);
       });
     });
+
+    // 카드 아바타: 비공개 버킷 사진을 서명 URL로 일괄 로드
+    const paths = boardStudents.filter((s) => s.photo_path).map((s) => s.photo_path);
+    if (paths.length) {
+      const { data: signed } = await sb.storage.from(ST_BUCKET).createSignedUrls(paths, 3600);
+      const urlMap = {};
+      (signed || []).forEach((r) => { if (r.signedUrl) urlMap[r.path] = r.signedUrl; });
+      $$("#studentBoard .st-avatar").forEach((el) => {
+        const u = urlMap[el.dataset.avatar];
+        if (u) el.innerHTML = `<img src="${u}" alt="">`;
+      });
+    }
   }
 
   async function assignStudent(id, classId) {
