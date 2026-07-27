@@ -668,12 +668,16 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
 
+  let attClasses = [];
+
   async function initAttendance() {
     $("#attDate").value = lastSundayYMD();
     const { data } = await sb.from("programs").select("id, name_ko, sort_order").order("sort_order", { ascending: true });
+    attClasses = data || [];
     $("#attClass").innerHTML =
-      (data || []).map((c) => `<option value="${c.id}">${esc(c.name_ko)}</option>`).join("") +
-      `<option value="">미배정</option>`;
+      `<option value="__all">전체 (모든 반)</option>` +
+      attClasses.map((c) => `<option value="${c.id}">${esc(c.name_ko)}</option>`).join("") +
+      `<option value="__none">미배정</option>`;
     loadAttendance();
   }
 
@@ -683,7 +687,8 @@
     const box = $("#attList");
     if (!date) { box.innerHTML = `<p class="empty">날짜를 선택하세요.</p>`; return; }
     let q = sb.from("applications").select("*").eq("status", "enrolled");
-    q = cls ? q.eq("class_id", cls) : q.is("class_id", null);
+    if (cls === "__none") q = q.is("class_id", null);
+    else if (cls !== "__all") q = q.eq("class_id", cls);
     const [stuRes, attRes] = await Promise.all([
       q.order("student_name_ko", { ascending: true }),
       sb.from("attendance").select("*").eq("class_date", date),
@@ -705,7 +710,7 @@
       $("#attSummary").innerHTML = "";
       return;
     }
-    box.innerHTML = attStudents.map((s) => {
+    const studentRow = (s) => {
       const st = attRecords[s.id] ? attRecords[s.id].status : "";
       const btn = (k) => `<button class="att-btn att-${k}${st === k ? " on" : ""}" data-att="${s.id}" data-set="${k}">${ATT_STATUS[k]}</button>`;
       return `
@@ -716,7 +721,29 @@
         </div>
         <div class="att-btns">${btn("present")}${btn("late")}${btn("absent")}</div>
       </div>`;
-    }).join("");
+    };
+
+    if ($("#attClass").value === "__all") {
+      // 전체 보기: 반별로 묶어서 표시 (반마다 소계 포함)
+      const groups = [
+        ...attClasses.map((c) => ({ name: c.name_ko, list: attStudents.filter((s) => s.class_id === c.id) })),
+        { name: "🗂 미배정", list: attStudents.filter((s) => !s.class_id) },
+      ].filter((g) => g.list.length);
+      box.innerHTML = groups.map((g) => {
+        const gc = { present: 0, late: 0, absent: 0 };
+        g.list.forEach((s) => { const r = attRecords[s.id]; if (r && gc[r.status] != null) gc[r.status]++; });
+        return `
+        <div class="att-group">
+          <div class="att-group-head">
+            <h2>${esc(g.name)}</h2>
+            <span class="att-group-meta">출석 ${gc.present} · 지각 ${gc.late} · 결석 ${gc.absent} · 총 ${g.list.length}명</span>
+          </div>
+          ${g.list.map(studentRow).join("")}
+        </div>`;
+      }).join("");
+    } else {
+      box.innerHTML = attStudents.map(studentRow).join("");
+    }
 
     const counts = { present: 0, late: 0, absent: 0 };
     attStudents.forEach((s) => { const r = attRecords[s.id]; if (r && counts[r.status] != null) counts[r.status]++; });
