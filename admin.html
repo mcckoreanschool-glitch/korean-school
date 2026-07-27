@@ -168,6 +168,27 @@
     </div>
   </div>
 
+  <!-- 사진 조절(크롭) 창 -->
+  <div class="crop-overlay" id="cropOverlay" hidden>
+    <div class="crop-box">
+      <h3>사진 조절</h3>
+      <p class="crop-hint">사진을 <b>드래그해서 위치</b>를 맞추고, 슬라이더로 <b>크기</b>를 조절하세요. 원 안이 실제로 보여지는 영역입니다.</p>
+      <div class="crop-viewport">
+        <canvas id="cropCanvas" width="320" height="320"></canvas>
+        <div class="crop-mask" aria-hidden="true"></div>
+      </div>
+      <div class="crop-zoom-row">
+        <span>축소</span>
+        <input type="range" id="cropZoom" min="100" max="300" value="100">
+        <span>확대</span>
+      </div>
+      <div class="crop-actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="cropCancel">취소</button>
+        <button type="button" class="btn btn-primary btn-sm" id="cropSave">이대로 저장</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" hidden></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

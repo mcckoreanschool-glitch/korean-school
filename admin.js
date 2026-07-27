@@ -418,10 +418,11 @@
       const file = e.target.files[0];
       e.target.value = "";
       if (!file) return;
+      const blob = await openCropper(file);   // 위치·크기 조절 후 정사각형으로 잘라서 받음
+      if (!blob) return;                       // 취소
       toast("업로드 중…");
-      const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
-      const path = `${a.id}-${Date.now()}.${ext}`;
-      const up = await sb.storage.from(ST_BUCKET).upload(path, file);
+      const path = `${a.id}-${Date.now()}.jpg`;
+      const up = await sb.storage.from(ST_BUCKET).upload(path, blob, { contentType: "image/jpeg" });
       if (up.error) { toast("업로드 실패: " + up.error.message, true); return; }
       const { error } = await sb.from("applications").update({ photo_path: path }).eq("id", a.id);
       if (error) { toast("저장 실패: " + error.message, true); return; }
@@ -570,6 +571,87 @@
     toast(classId ? "반이 배정되었습니다." : "미배정으로 이동했습니다.");
     loadStudentBoard();
   }
+
+  // ============================================================
+  //  2.6) 사진 조절(크롭) 도구 — 드래그로 위치, 슬라이더로 확대/축소
+  //  openCropper(file) → 조절된 정사각형 JPEG Blob (취소 시 null)
+  // ============================================================
+  const CROP_VIEW = 320;   // 화면 미리보기 크기(px)
+  const CROP_OUT = 512;    // 저장되는 이미지 크기(px)
+  const cropUI = { img: null, scale: 1, min: 1, cx: 0, cy: 0, resolve: null, drag: null };
+
+  function cropClamp() {
+    const c = cropUI, half = CROP_VIEW / c.scale / 2;
+    c.cx = Math.min(Math.max(c.cx, half), c.img.naturalWidth - half);
+    c.cy = Math.min(Math.max(c.cy, half), c.img.naturalHeight - half);
+  }
+  function cropDraw() {
+    const c = cropUI, ctx = $("#cropCanvas").getContext("2d");
+    ctx.clearRect(0, 0, CROP_VIEW, CROP_VIEW);
+    if (!c.img) return;
+    const s = CROP_VIEW / c.scale;
+    ctx.drawImage(c.img, c.cx - s / 2, c.cy - s / 2, s, s, 0, 0, CROP_VIEW, CROP_VIEW);
+  }
+  function openCropper(file) {
+    return new Promise((resolve) => {
+      const c = cropUI;
+      c.resolve = resolve;
+      const img = new Image();
+      img.onload = () => {
+        c.img = img;
+        c.min = Math.max(CROP_VIEW / img.naturalWidth, CROP_VIEW / img.naturalHeight);
+        c.scale = c.min;
+        c.cx = img.naturalWidth / 2; c.cy = img.naturalHeight / 2;
+        $("#cropZoom").value = 100;
+        $("#cropOverlay").hidden = false;
+        cropDraw();
+      };
+      img.onerror = () => { toast("이미지를 열 수 없습니다. (jpg/png 권장)", true); closeCropper(null); };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+  function closeCropper(blob) {
+    $("#cropOverlay").hidden = true;
+    const c = cropUI;
+    if (c.img) { URL.revokeObjectURL(c.img.src); c.img = null; }
+    const r = c.resolve; c.resolve = null;
+    if (r) r(blob || null);
+  }
+
+  $("#cropZoom").addEventListener("input", () => {
+    const c = cropUI; if (!c.img) return;
+    c.scale = c.min * ($("#cropZoom").value / 100);
+    cropClamp(); cropDraw();
+  });
+  (() => {
+    const cv = $("#cropCanvas");
+    cv.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      cropUI.drag = { x: e.clientX, y: e.clientY };
+      cv.setPointerCapture(e.pointerId);
+    });
+    cv.addEventListener("pointermove", (e) => {
+      const c = cropUI; if (!c.drag || !c.img) return;
+      const factor = CROP_VIEW / cv.getBoundingClientRect().width;   // CSS 축소 보정
+      c.cx -= (e.clientX - c.drag.x) * factor / c.scale;
+      c.cy -= (e.clientY - c.drag.y) * factor / c.scale;
+      c.drag = { x: e.clientX, y: e.clientY };
+      cropClamp(); cropDraw();
+    });
+    const end = () => { cropUI.drag = null; };
+    cv.addEventListener("pointerup", end);
+    cv.addEventListener("pointercancel", end);
+  })();
+  $("#cropCancel").addEventListener("click", () => closeCropper(null));
+  $("#cropOverlay").addEventListener("click", (e) => { if (e.target === $("#cropOverlay")) closeCropper(null); });
+  $("#cropSave").addEventListener("click", () => {
+    const c = cropUI; if (!c.img) return closeCropper(null);
+    const out = document.createElement("canvas");
+    out.width = CROP_OUT; out.height = CROP_OUT;
+    const s = CROP_VIEW / c.scale;
+    out.getContext("2d").drawImage(c.img, c.cx - s / 2, c.cy - s / 2, s, s, 0, 0, CROP_OUT, CROP_OUT);
+    out.toBlob((blob) => closeCropper(blob), "image/jpeg", 0.9);
+  });
 
   // ============================================================
   //  3) 공지사항
