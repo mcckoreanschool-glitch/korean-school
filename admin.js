@@ -54,7 +54,12 @@
     loadHeroSlides();
     loadSiteImages();
   }
-  $("#heroAdd").addEventListener("change", (e) => { addHeroSlides(e.target.files); e.target.value = ""; });
+  $("#heroAdd").addEventListener("change", (e) => {
+    // FileList는 입력창과 연동된 live 객체 — 비우기 전에 반드시 복사해둬야 함
+    const files = Array.from(e.target.files);
+    e.target.value = "";
+    addHeroSlides(files);
+  });
 
   function setupTabs() {
     $$(".dash-tab").forEach((tab) => tab.addEventListener("click", () => {
@@ -638,16 +643,19 @@
     toast("업로드 중…");
     const { data: existing } = await sb.from("hero_slides").select("sort_order").order("sort_order", { ascending: false }).limit(1);
     let next = existing && existing.length ? (existing[0].sort_order + 1) : 0;
+    let okCount = 0, lastErr = "";
     for (const file of Array.from(files)) {
       const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
       const path = `hero/${Date.now()}-${next}.${ext}`;
       const up = await sb.storage.from(BUCKET).upload(path, file, { upsert: false });
-      if (up.error) { toast("업로드 실패: " + up.error.message, true); continue; }
+      if (up.error) { lastErr = up.error.message; continue; }
       const res = await sb.from("hero_slides").insert({ image_path: path, sort_order: next });
-      if (res.error) { toast("저장 실패: " + res.error.message, true); }
-      next++;
+      if (res.error) { lastErr = res.error.message; next++; continue; }
+      okCount++; next++;
     }
-    toast("슬라이드가 추가되었습니다."); loadHeroSlides();
+    if (okCount) toast(`슬라이드 ${okCount}장이 추가되었습니다.` + (lastErr ? ` (일부 실패: ${lastErr})` : ""));
+    else toast("업로드 실패" + (lastErr ? ": " + lastErr : ""), true);
+    loadHeroSlides();
   }
 
   async function loadSiteImages() {
@@ -675,7 +683,11 @@
       </div>`;
     }).join("");
     $$("#siteImgList [data-upload]").forEach((inp) =>
-      inp.addEventListener("change", () => uploadSiteImage(inp.dataset.upload, inp.files[0])));
+      inp.addEventListener("change", () => {
+        const file = inp.files[0];   // File 객체를 먼저 확보한 뒤 입력창 초기화
+        inp.value = "";
+        uploadSiteImage(inp.dataset.upload, file);
+      }));
     $$("#siteImgList [data-remove]").forEach((b) =>
       b.addEventListener("click", () => removeSiteImage(b.dataset.remove, b.dataset.path)));
   }
