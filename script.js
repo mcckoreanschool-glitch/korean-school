@@ -94,11 +94,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (!paths.length) return;   // 사진 없으면 기존 그라데이션 배경 유지
     const urls = paths.map(p => sb.storage.from('gallery').getPublicUrl(p).data.publicUrl);
+    // 성능: 첫 장만 즉시 로드, 나머지는 페이지 로드가 끝난 뒤에 내려받음
     box.innerHTML = urls.map((u, i) =>
-      `<div class="hero-slide${i === 0 ? ' active' : ''}" style="background-image:url('${u}')"></div>`).join('');
+      `<div class="hero-slide${i === 0 ? ' active' : ''}"${i === 0 ? ` style="background-image:url('${u}')"` : ''}></div>`).join('');
     hero.classList.add('has-bg-image');
     if (urls.length < 2) return;   // 한 장이면 고정 배경
     const slides = Array.from(box.querySelectorAll('.hero-slide'));
+    const loadRest = () => slides.forEach((el, i) => {
+      if (i > 0) el.style.backgroundImage = `url('${urls[i]}')`;
+    });
+    if (document.readyState === 'complete') setTimeout(loadRest, 300);
+    else window.addEventListener('load', () => setTimeout(loadRest, 300), { once: true });
     let idx = 0;
     setInterval(() => {
       slides[idx].classList.remove('active');
@@ -178,7 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('galleryGrid');
     grid.innerHTML = data.map(g => {
       const url = sb.storage.from('gallery').getPublicUrl(g.image_path).data.publicUrl;
-      return `<a class="g-item g-photo" href="gallery.html" style="background-image:url('${esc(url)}')">
+      return `<a class="g-item g-photo" href="gallery.html">
+        <img class="g-img" src="${esc(url)}" alt="${esc(g.caption_ko || '')}" loading="lazy">
         ${g.caption_ko ? `<span data-ko="${esc(g.caption_ko)}" data-en="${esc(g.caption_en || g.caption_ko)}">${esc(g.caption_ko)}</span>` : ''}
       </a>`;
     }).join('');

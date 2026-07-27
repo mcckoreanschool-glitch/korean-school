@@ -84,6 +84,30 @@
 
   function setBadge(id, n) { const b = $(id); b.textContent = n; b.classList.toggle("zero", n === 0); }
 
+  // 성능: 업로드 전 사진을 웹용으로 자동 축소 (최대 1600px, JPEG)
+  // — 핸드폰 원본(수 MB)이 그대로 올라가 페이지가 무거워지는 것을 방지
+  async function shrinkImage(file, maxDim = 1600, quality = 0.85) {
+    try {
+      const img = await new Promise((res, rej) => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.onerror = rej;
+        i.src = URL.createObjectURL(file);
+      });
+      const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+      if (scale === 1 && file.size < 400 * 1024) { URL.revokeObjectURL(img.src); return file; }  // 이미 작으면 그대로
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(img.naturalWidth * scale);
+      cv.height = Math.round(img.naturalHeight * scale);
+      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(img.src);
+      const blob = await new Promise((res) => cv.toBlob(res, "image/jpeg", quality));
+      return blob && blob.size < file.size ? blob : file;
+    } catch { return file; }   // 변환 실패 시 원본 그대로 업로드
+  }
+  // 파일명이 시간값이라 내용이 안 바뀌므로 브라우저가 1년간 캐시해도 안전
+  const UP_OPTS = { upsert: false, cacheControl: "31536000" };
+
   // ============================================================
   //  1) 신청서 요청 (form_requests)
   // ============================================================
@@ -423,7 +447,7 @@
       if (!blob) return;                       // 취소
       toast("업로드 중…");
       const path = `${a.id}-${Date.now()}.jpg`;
-      const up = await sb.storage.from(ST_BUCKET).upload(path, blob, { contentType: "image/jpeg" });
+      const up = await sb.storage.from(ST_BUCKET).upload(path, blob, { ...UP_OPTS, contentType: "image/jpeg" });
       if (up.error) { toast("업로드 실패: " + up.error.message, true); return; }
       const { error } = await sb.from("applications").update({ photo_path: path }).eq("id", a.id);
       if (error) { toast("저장 실패: " + error.message, true); return; }
@@ -985,9 +1009,10 @@
       let image_path = p.image_path || null;
       const imgFile = $("#m_img").files[0];
       if (imgFile) {
-        const ext = (imgFile.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+        const upData = await shrinkImage(imgFile);
+        const ext = upData !== imgFile ? "jpg" : (imgFile.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
         const path = `programs/${Date.now()}.${ext}`;
-        const up = await sb.storage.from(BUCKET).upload(path, imgFile, { upsert: false });
+        const up = await sb.storage.from(BUCKET).upload(path, upData, UP_OPTS);
         if (up.error) { toast("사진 업로드 실패: " + up.error.message, true); return false; }
         if (p.image_path) await sb.storage.from(BUCKET).remove([p.image_path]);
         image_path = path;
@@ -1048,8 +1073,9 @@
       const file = $("#m_file").files[0];
       if (!file) { toast("사진 파일을 선택하세요.", true); return false; }
       const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `${Date.now()}-${safe}`;
-      const up = await sb.storage.from(BUCKET).upload(path, file, { upsert: false });
+      const upData = await shrinkImage(file);
+      const path = `${Date.now()}-${upData !== file ? safe.replace(/\.[^.]+$/, "") + ".jpg" : safe}`;
+      const up = await sb.storage.from(BUCKET).upload(path, upData, UP_OPTS);
       if (up.error) { toast("업로드 실패: " + up.error.message, true); return false; }
       const res = await sb.from("gallery").insert({
         image_path: path, caption_ko: $("#m_cap_ko").value, caption_en: $("#m_cap_en").value,
@@ -1077,7 +1103,7 @@
     if (!data.length) { box.innerHTML = `<p class="empty">아직 슬라이드가 없습니다. "슬라이드 추가"로 사진을 올려보세요.</p>`; return; }
     box.innerHTML = data.map((s, i) => `
       <div class="admin-item si-item">
-        <div class="si-thumb"><img src="${esc(publicUrl(s.image_path))}" alt=""></div>
+        <div class="si-thumb"><img src="${esc(publicUrl(s.image_path))}" alt="" loading="lazy"></div>
         <div class="ai-main">
           <div class="ai-meta">${i + 1}번째 ${s.published ? '<span class="pill pill-on">공개</span>' : '<span class="pill pill-off">숨김</span>'}</div>
         </div>
@@ -1118,9 +1144,10 @@
     let next = existing && existing.length ? (existing[0].sort_order + 1) : 0;
     let okCount = 0, lastErr = "";
     for (const file of Array.from(files)) {
-      const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+      const upData = await shrinkImage(file, 1920);   // 히어로는 배경용이라 조금 크게
+      const ext = upData !== file ? "jpg" : (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
       const path = `hero/${Date.now()}-${next}.${ext}`;
-      const up = await sb.storage.from(BUCKET).upload(path, file, { upsert: false });
+      const up = await sb.storage.from(BUCKET).upload(path, upData, UP_OPTS);
       if (up.error) { lastErr = up.error.message; continue; }
       const res = await sb.from("hero_slides").insert({ image_path: path, sort_order: next });
       if (res.error) { lastErr = res.error.message; next++; continue; }
@@ -1140,7 +1167,7 @@
     box.innerHTML = SITE_SLOTS.map((s) => {
       const rec = map[s.slot];
       const thumb = rec
-        ? `<img src="${esc(publicUrl(rec.image_path))}" alt="">`
+        ? `<img src="${esc(publicUrl(rec.image_path))}" alt="" loading="lazy">`
         : `<div class="si-empty" data-ko="사진 없음" data-en="No photo">사진 없음</div>`;
       return `
       <div class="admin-item si-item">
@@ -1168,9 +1195,10 @@
   async function uploadSiteImage(slot, file) {
     if (!file) return;
     toast("업로드 중…");
-    const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+    const upData = await shrinkImage(file, 1920);
+    const ext = upData !== file ? "jpg" : (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
     const path = `site/${slot}-${Date.now()}.${ext}`;
-    const up = await sb.storage.from(BUCKET).upload(path, file, { upsert: false });
+    const up = await sb.storage.from(BUCKET).upload(path, upData, UP_OPTS);
     if (up.error) { toast("업로드 실패: " + up.error.message, true); return; }
     const { data: prev } = await sb.from("site_images").select("image_path").eq("slot", slot).maybeSingle();
     const res = await sb.from("site_images").upsert({ slot, image_path: path, updated_at: new Date().toISOString() });
