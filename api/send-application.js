@@ -54,11 +54,12 @@ function buildEmailHtml(safeName, link, extraBlock) {
         입학 신청서를 요청해 주셔서 감사합니다. 아래 버튼을 눌러 온라인 신청서를 작성해 주세요.<br>
         <span style="color:#8a8471;font-size:13px">Thank you for your interest! Please click below to complete your enrollment application.</span>
       </p>
+${extraBlock}
       <p style="text-align:center;margin:26px 0">
         <a href="${link}" style="background:#23895e;background:#b8890f;color:#fff;text-decoration:none;padding:14px 30px;border-radius:999px;font-weight:600;display:inline-block">
           신청서 작성하기 · Open Application
         </a>
-      </p>${extraBlock}
+      </p>
       <p style="font-size:12px;color:#8a8471;line-height:1.6">
         버튼이 안 보이면 이 링크를 복사해 열어주세요 / If the button doesn't work, copy this link:<br>
         <a href="${link}" style="color:#8a6a0c;word-break:break-all">${link}</a>
