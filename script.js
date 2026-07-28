@@ -180,6 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.backgroundSize = 'cover';
         el.style.backgroundPosition = 'center';
         el.classList.add('has-bg-image');
+      } else if (el.dataset.slotType === 'bg-light') {
+        // 밝은 막을 덧입혀 사진이 은은하게 비치고 글씨는 그대로 잘 보이게
+        el.style.backgroundImage =
+          `linear-gradient(rgba(255,253,247,.93), rgba(255,253,247,.9)), url('${url}')`;
+        el.classList.add('has-bg-light');
       } else {
         el.src = url;
         el.alt = (currentLang === 'en' ? rec.alt_en : rec.alt_ko) || '';

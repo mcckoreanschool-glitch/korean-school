@@ -155,7 +155,7 @@ img { max-width: 100%; display: block; }
 .about-message .card-label { color: var(--butter-300); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
 .about-message .quote { font-size: 18px; line-height: 1.85; color: #fff; }
 .about-message .signature { margin-top: 22px; color: var(--butter-300); font-weight: 600; }
-.about-values { display: grid; grid-template-rows: repeat(3, 1fr); gap: 16px; }
+.about-values { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
 .value { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 22px 24px; display: flex; flex-direction: column; gap: 4px; transition: transform .2s, box-shadow .2s; }
 .value:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .value-icon {
@@ -415,6 +415,12 @@ img { max-width: 100%; display: block; }
 .about-values .value:nth-child(2) .value-icon { background: var(--pink-200); color: var(--pink-ink); }
 .about-values .value:nth-child(3) { background: var(--purple-100); }
 .about-values .value:nth-child(3) .value-icon { background: var(--purple-200); color: var(--purple-ink); }
+.about-values .value:nth-child(4) { background: var(--green-100); }
+.about-values .value:nth-child(4) .value-icon { background: var(--green-200); color: var(--green-ink); }
+.about-values .value:nth-child(5) { background: var(--pink-100); }
+.about-values .value:nth-child(5) .value-icon { background: var(--pink-200); color: var(--pink-ink); }
+.about-values .value:nth-child(6) { background: var(--butter-100); }
+.about-values .value:nth-child(6) .value-icon { background: var(--butter-200); color: var(--gold-700); }
 
 /* 수업 프로그램 태그 — 파스텔 4색 로테이션 */
 .program-grid .program:nth-child(4n+1) .program-tag { background: var(--butter-100); color: var(--gold-700); }
@@ -456,3 +462,9 @@ img { max-width: 100%; display: block; }
 .hero.px-on .hero-slides { inset: -42% 0 0 0; }   /* 배경이 아래로 밀려도 위가 비지 않게 위로 확장 */
 .hero.px-on .hero-slides, .hero.px-on .hero-inner { will-change: transform; }
 .px-img { will-change: transform; }
+
+/* 학교 소개 — 배경 사진(관리자 설정 시) & 반응형 */
+.section.has-bg-light { background-size: cover; background-position: center; }
+@media (max-width: 640px) {
+  .about-values { grid-template-columns: 1fr; }
+}
