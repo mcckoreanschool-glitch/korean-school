@@ -160,7 +160,7 @@ img { max-width: 100%; display: block; }
 .value:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .value-icon {
   width: 44px; height: 44px; border-radius: 12px; background: var(--butter-100); color: var(--gold-700);
-  font-family: var(--kr); font-weight: 900; font-size: 20px; display: grid; place-items: center; margin-bottom: 6px;
+  font-family: var(--kr); font-weight: 900; font-size: 22px; display: grid; place-items: center; margin-bottom: 6px;
 }
 .value h3 { font-size: 18px; }
 .value p { font-size: 14.5px; color: var(--body); }
