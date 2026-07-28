@@ -185,6 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.backgroundImage =
           `linear-gradient(rgba(255,253,247,.93), rgba(255,253,247,.9)), url('${url}')`;
         el.classList.add('has-bg-light');
+      } else if (el.dataset.slotType === 'bg-plum') {
+        // 교장 인사말 카드: 짙은 보라 막 — 카드 본래 톤을 유지하며 사진이 비침
+        el.style.backgroundImage =
+          `linear-gradient(150deg, rgba(74,64,102,.86), rgba(54,45,79,.92)), url('${url}')`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
       } else {
         el.src = url;
         el.alt = (currentLang === 'en' ? rec.alt_en : rec.alt_ko) || '';
