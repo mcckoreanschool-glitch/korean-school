@@ -289,3 +289,9 @@
 .att-c-a { color: #b3372a; font-weight: 700; }
 .att-c-none { color: #c9c2a8; }
 .att-sum, .att-sum-h { font-size: 12px; color: #77704f; }
+
+/* 사이트 이미지 — 선명도 슬라이더 */
+.si-ov { display: flex; align-items: center; gap: 10px; margin-top: 10px; max-width: 340px; }
+.si-ov-label { font-size: 12px; color: var(--muted, #8a8471); flex: none; }
+.si-ov input { flex: 1; accent-color: #d9a90f; }
+.si-ov-val { font-size: 12px; color: #8a6a0c; min-width: 34px; text-align: right; }

@@ -181,14 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.backgroundPosition = 'center';
         el.classList.add('has-bg-image');
       } else if (el.dataset.slotType === 'bg-light') {
-        // 밝은 막을 덧입혀 사진이 은은하게 비치고 글씨는 그대로 잘 보이게
+        // 밝은 막을 덧입혀 글씨 가독성 유지 — 막 진하기는 admin에서 조절(overlay, 기본 85%)
+        const ov = Math.min(98, Math.max(30, rec.overlay ?? 85)) / 100;
         el.style.backgroundImage =
-          `linear-gradient(rgba(255,253,247,.93), rgba(255,253,247,.9)), url('${url}')`;
+          `linear-gradient(rgba(255,253,247,${ov}), rgba(255,253,247,${ov})), url('${url}')`;
         el.classList.add('has-bg-light');
       } else if (el.dataset.slotType === 'bg-plum') {
-        // 교장 인사말 카드: 짙은 보라 막 — 카드 본래 톤을 유지하며 사진이 비침
+        // 교장 인사말 카드: 짙은 보라 막 — 진하기 admin에서 조절(기본 87%)
+        const ov = Math.min(98, Math.max(30, rec.overlay ?? 87)) / 100;
         el.style.backgroundImage =
-          `linear-gradient(150deg, rgba(74,64,102,.86), rgba(54,45,79,.92)), url('${url}')`;
+          `linear-gradient(150deg, rgba(74,64,102,${ov}), rgba(54,45,79,${Math.min(1, ov + 0.05)})), url('${url}')`;
         el.style.backgroundSize = 'cover';
         el.style.backgroundPosition = 'center';
       } else {

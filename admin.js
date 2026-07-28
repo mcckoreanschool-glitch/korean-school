@@ -1091,8 +1091,8 @@
   // ============================================================
   const SITE_SLOTS = [
     { slot: "about_photo",  label: "학교 소개 · 사진",       hint: "교실·단체·활동 사진 등. 가로형 배너로 표시됩니다." },
-    { slot: "about_bg",     label: "학교 소개 · 배경 사진",   hint: "섹션 전체 뒤에 은은하게 깔리는 사진. 밝은 막이 덧입혀져 글씨는 그대로 잘 보입니다. 가로로 넓은 사진 권장." },
-    { slot: "principal_bg", label: "교장 인사말 · 배경 사진", hint: "인사말 카드 뒤에 은은하게 깔립니다. 짙은 보라 막이 덧입혀져 흰 글씨가 그대로 잘 보입니다." },
+    { slot: "about_bg",     label: "학교 소개 · 배경 사진",   hint: "섹션 전체 뒤에 깔리는 사진. 아래 슬라이더로 사진이 보이는 정도를 조절하세요.", adjustable: true, defOverlay: 85 },
+    { slot: "principal_bg", label: "교장 인사말 · 배경 사진", hint: "인사말 카드 뒤에 깔립니다. 아래 슬라이더로 사진이 보이는 정도를 조절하세요.", adjustable: true, defOverlay: 87 },
   ];
 
   // ── 홈 히어로 슬라이드쇼 ──
@@ -1171,12 +1171,21 @@
       const thumb = rec
         ? `<img src="${esc(publicUrl(rec.image_path))}" alt="" loading="lazy">`
         : `<div class="si-empty" data-ko="사진 없음" data-en="No photo">사진 없음</div>`;
+      // 배경형 슬롯: 사진이 있으면 선명도(=100-막 진하기) 슬라이더 표시
+      const clarity = rec && s.adjustable ? 100 - (rec.overlay ?? s.defOverlay) : null;
+      const slider = rec && s.adjustable ? `
+        <div class="si-ov">
+          <span class="si-ov-label">사진 선명도</span>
+          <input type="range" min="5" max="70" value="${clarity}" data-ov="${s.slot}">
+          <b class="si-ov-val">${clarity}%</b>
+        </div>` : "";
       return `
       <div class="admin-item si-item">
         <div class="si-thumb">${thumb}</div>
         <div class="ai-main">
           <h3>${esc(s.label)}</h3>
           <p class="ai-meta">${esc(s.hint)}</p>
+          ${slider}
         </div>
         <div class="ai-actions">
           <label class="btn btn-primary btn-sm file-btn">${rec ? "변경" : "사진 올리기"}<input type="file" accept="image/*" hidden data-upload="${s.slot}"></label>
@@ -1184,6 +1193,16 @@
         </div>
       </div>`;
     }).join("");
+    $$("#siteImgList [data-ov]").forEach((sl) => {
+      const out = sl.parentElement.querySelector(".si-ov-val");
+      sl.addEventListener("input", () => { out.textContent = sl.value + "%"; });
+      sl.addEventListener("change", async () => {
+        const overlay = 100 - parseInt(sl.value, 10);
+        const { error } = await sb.from("site_images").update({ overlay }).eq("slot", sl.dataset.ov);
+        if (error) return toast("저장 실패: " + error.message + " (투명도 마이그레이션 SQL 실행 확인)", true);
+        toast("선명도가 저장되었습니다. 사이트를 새로고침하면 반영돼요.");
+      });
+    });
     $$("#siteImgList [data-upload]").forEach((inp) =>
       inp.addEventListener("change", () => {
         const file = inp.files[0];   // File 객체를 먼저 확보한 뒤 입력창 초기화
