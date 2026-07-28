@@ -155,7 +155,7 @@ img { max-width: 100%; display: block; }
 .about-message .card-label { color: var(--butter-300); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
 .about-message .quote { font-size: 18px; line-height: 1.85; color: #fff; }
 .about-message .signature { margin-top: 22px; color: var(--butter-300); font-weight: 600; }
-.about-values { display: grid; grid-template-rows: repeat(3, 1fr); gap: 16px; }
+.about-values { display: flex; flex-direction: column; gap: 16px; justify-content: space-between; }
 .value { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 22px 24px; display: flex; flex-direction: column; gap: 4px; transition: transform .2s, box-shadow .2s; }
 .value:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .value-icon {
@@ -459,3 +459,6 @@ img { max-width: 100%; display: block; }
 
 /* 학교 소개 — 배경 사진(관리자 설정 시) & 반응형 */
 .section.has-bg-light { background-size: cover; background-position: center; }
+
+/* 한국어 줄바꿈 정리 — 단어 중간에서 끊기지 않게 */
+body { word-break: keep-all; overflow-wrap: break-word; }
